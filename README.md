@@ -22,6 +22,7 @@ Aplicación móvil desarrollada para Android en Java para registrar, organizar y
 El sistema está compuesto por dos proyectos independientes que se comunican mediante peticiones HTTP/JSON:
 
 1. **Backend — API REST en .NET 10 (`Tarea2.2_ApiRest_BitacoraUTH`):**
+   - **Repositorio:** [https://github.com/williambanegas/Tarea2.2_ApiRest_BitacoraUTH](https://github.com/williambanegas/Tarea2.2_ApiRest_BitacoraUTH)
    - Construido bajo **Clean Architecture** (`Bitacora.Domain`, `Bitacora.Application`, `Bitacora.Infrastructure`, `Bitacora.Api`).
    - Utiliza **Entity Framework Core** con una base de datos local **SQLite** (`bitacora.db`), por lo que no requiere instalar un motor de base de datos externo.
    - Expone los endpoints REST en `http://0.0.0.0:5033/api/registros` y cuenta con documentación interactiva **Swagger UI** en `http://localhost:5033/swagger`.
@@ -71,14 +72,18 @@ Para que la aplicación Android funcione correctamente, **primero debes iniciar 
 
 ### Paso 1: Ejecutar la API REST en .NET (`Tarea2.2_ApiRest_BitacoraUTH`)
 
-1. Asegúrate de tener instalado el **SDK de .NET 10** (o Visual Studio 2022 / 2026 con soporte para .NET 10).
-2. Abre una terminal en la carpeta del proyecto de la API (`Tarea2.2_ApiRest_BitacoraUTH`) o abre la solución `Bitacora.slnx` en Visual Studio.
-3. Ejecuta el proyecto con el perfil `http` (que escucha en el puerto `5033`):
+1. Clona o descarga el repositorio del backend desde:
+   ```powershell
+   git clone https://github.com/williambanegas/Tarea2.2_ApiRest_BitacoraUTH
+   ```
+2. Asegúrate de tener instalado el **SDK de .NET 10** (o Visual Studio 2022 / 2026 con soporte para .NET 10).
+3. Abre una terminal en la carpeta `Tarea2.2_ApiRest_BitacoraUTH` o abre la solución `Bitacora.slnx` en Visual Studio.
+4. Ejecuta el proyecto con el perfil `http` (que escucha en el puerto `5033`):
    ```powershell
    dotnet run --project src/Bitacora.Api/Bitacora.Api.csproj --launch-profile http
    ```
    *(O en Visual Studio, selecciona el perfil **http** en la barra superior y presiona `F5` / `Ctrl + F5`).*
-4. Verifica en el navegador de tu PC que la API esté respondiendo entrando a Swagger UI:
+5. Verifica en el navegador de tu PC que la API esté respondiendo entrando a Swagger UI:
    - `http://localhost:5033/swagger`
 
 ### Paso 2: Ejecutar la App Android (`bitacora_de_campo`)
@@ -93,37 +98,19 @@ Para que la aplicación Android funcione correctamente, **primero debes iniciar 
 
 ## Solución de Problemas: Qué hacer si Windows o el Emulador bloquean la conexión
 
-Si la API abre bien en el navegador de tu PC (`http://localhost:5033/swagger`), pero en la app de Android aparece error de **Timeout (`SocketTimeoutException`)** al intentar conectar con `10.0.2.2:5033`, revisa estos 4 puntos:
+Si la API abre bien en el navegador de tu PC (`http://localhost:5033/swagger`), pero en la app de Android aparece error de **Timeout (`SocketTimeoutException`)** al intentar conectar con `10.0.2.2:5033`, revisa estos puntos:
 
-### 1. Permitir conexiones externas en el servidor ASP.NET Core (`0.0.0.0`)
-Por defecto, .NET suele escuchar únicamente en `localhost` (`127.0.0.1`), rechazando conexiones que entran por el adaptador de red del emulador.
-- Abre el archivo `src/Bitacora.Api/Properties/launchSettings.json` en el proyecto de .NET y asegúrate de que `applicationUrl` use **`0.0.0.0`** en lugar de `localhost`:
-  ```json
-  "profiles": {
-    "http": {
-      "commandName": "Project",
-      "dotnetRunMessages": true,
-      "launchBrowser": false,
-      "applicationUrl": "http://0.0.0.0:5033",
-      "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
-      }
-    }
-  }
-  ```
-- **Importante:** Detén y vuelve a iniciar el servidor de .NET después de hacer este cambio.
-
-### 2. Desbloquear el puerto `5033` en el Firewall de Windows Defender
-Cuando el servidor .NET escucha en `0.0.0.0:5033`, el Firewall de Windows puede bloquear las peticiones entrantes desde el emulador:
+### 1. Desbloquear el puerto `5033` en el Firewall de Windows Defender
+Cuando el servidor .NET se ejecuta en el puerto `5033`, el Firewall de Windows puede bloquear las peticiones entrantes desde el emulador:
 - Si aparece la ventana de **Alerta de seguridad de Windows Defender**, marca tanto **Redes privadas** como **Redes públicas** y haz clic en **Permitir acceso**.
-- Si no apareció la ventana o fue bloqueado previamente, abre **PowerShell como Administrador** y ejecuta este comando para abrir el puerto `5033` local:
+- Si no apareció la ventana o fue bloqueado previamente, abre **PowerShell como Administrador** y ejecuta este comando para permitir el tráfico en el puerto `5033`:
   ```powershell
   New-NetFirewallRule -DisplayName "Bitacora API Puerto 5033" -Direction Inbound -LocalPort 5033 -Protocol TCP -Action Allow
   ```
 
-### 3. Restricción de Red Local en Android API 37 (`Local Network Protection`)
-Si creas o compilas la app con `targetSdk = 37` (Android 17 Preview), el sistema operativo Android activa la política `Compat change id: 333566037` (*Local Network Protection*), la cual **bloquea el acceso de las aplicaciones a direcciones IP de subred local como `10.0.2.2`** aunque el navegador del emulador sí pueda entrar.
-- **Solución:** En `app/build.gradle.kts`, mantén **`targetSdk = 36`** (o `35`):
+### 2. Restricción de Red Local en Android API 37 (`Local Network Protection`)
+Si se compila la app con `targetSdk = 37` (Android 17 Preview), el sistema operativo Android activa la política `Compat change id: 333566037` (*Local Network Protection*), la cual **bloquea el acceso de las aplicaciones a direcciones IP de subred local como `10.0.2.2`** aunque el navegador del emulador sí pueda entrar.
+- **Solución:** En `app/build.gradle.kts`, asegúrate de mantener **`targetSdk = 36`** (o `35`):
   ```kotlin
   defaultConfig {
       applicationId = "dev.josegaldamez.bitacora_de_campo"
@@ -131,7 +118,7 @@ Si creas o compilas la app con `targetSdk = 37` (Android 17 Preview), el sistema
       targetSdk = 36 // Usar 35 o 36 para permitir tráfico hacia 10.0.2.2
   ```
 
-### 4. Alternativa directa por cable virtual (`adb reverse`)
+### 3. Alternativa directa por cable virtual (`adb reverse`)
 Si por políticas de red de tu equipo, VPN o antivirus el emulador sigue sin alcanzar `10.0.2.2:5033`, puedes crear un túnel directo por ADB entre el emulador (o un teléfono físico por USB) y tu PC:
 1. Ejecuta en la terminal:
    ```powershell
