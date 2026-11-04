@@ -4,7 +4,7 @@ Aplicación móvil desarrollada para Android diseñada para registrar, organizar
 
 ---
 
-## 👥 Integrantes del Grupo #3 — Programación Móvil 1
+## Integrantes del Grupo #3 — Programación Móvil 1
 
 | Nombre Completo | Número de Cuenta |
 | :--- | :--- |
@@ -17,7 +17,7 @@ Aplicación móvil desarrollada para Android diseñada para registrar, organizar
 
 ---
 
-## 🚀 Características Principales
+## Características Principales
 
 - **Gestión de Registros de Campo:** Creación, lectura, actualización y eliminación (CRUD) de notas de campo.
 - **Multimedia y Fotografías:** Soporte para adjuntar y visualizar fotografías convertidas en formato Base64.
@@ -27,7 +27,7 @@ Aplicación móvil desarrollada para Android diseñada para registrar, organizar
 
 ---
 
-## 🛠️ Tecnologías y Arquitectura
+## Tecnologías y Arquitectura
 
 - **Lenguaje:** Java (Android SDK)
 - **Patrón de Arquitectura:** MVC (Modelo - Vista - Controlador)
@@ -40,7 +40,7 @@ Aplicación móvil desarrollada para Android diseñada para registrar, organizar
 
 ---
 
-## 📂 Estructura del Proyecto
+## Estructura del Proyecto
 
 ```text
 bitacora_de_campo/
@@ -63,7 +63,7 @@ bitacora_de_campo/
 
 ---
 
-## 📋 Requisitos del Sistema
+## Requisitos del Sistema
 
 - **Android SDK:** Mínimo API 24 (Android 7.0 Nougat) o superior.
 - **Target SDK:** API 37.
@@ -72,7 +72,7 @@ bitacora_de_campo/
 
 ---
 
-## 🔧 Instrucciones de Configuración y Ejecución
+## Instrucciones de Configuración y Ejecución
 
 1. **Clonar o descargar el repositorio** en tu equipo local.
 2. **Abrir Android Studio** (versión recomendada: Koala / Jellyfish o superior).
@@ -83,6 +83,6 @@ bitacora_de_campo/
 
 ---
 
-## 📄 Licencia
+## Licencia
 
 Este proyecto ha sido desarrollado con fines académicos para la clase de **Programación Móvil 1**.
