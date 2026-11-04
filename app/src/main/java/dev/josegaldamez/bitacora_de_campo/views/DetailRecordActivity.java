@@ -2,8 +2,10 @@ package dev.josegaldamez.bitacora_de_campo.views;
 
 import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -13,19 +15,28 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.google.android.material.appbar.MaterialToolbar;
 
 import dev.josegaldamez.bitacora_de_campo.R;
 import dev.josegaldamez.bitacora_de_campo.controllers.RecordController;
 import dev.josegaldamez.bitacora_de_campo.models.Record;
+import dev.josegaldamez.bitacora_de_campo.viewmodel.RegistroViewModel;
 
 public class DetailRecordActivity extends AppCompatActivity {
 
     public static final String EXTRA_RECORD_ID = "extra_record_id";
 
-    private RecordController recordController;
+    private RegistroViewModel viewModel;
     private Record currentRecord;
+
+    private ImageView ivPhoto;
+    private TextView tvTitle;
+    private TextView tvDate;
+    private TextView tvDescription;
+    private Button btnDelete;
+    private ProgressBar progressBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,59 +50,82 @@ public class DetailRecordActivity extends AppCompatActivity {
             return insets;
         });
 
-        recordController = new RecordController(this);
+        viewModel = new ViewModelProvider(this).get(RegistroViewModel.class);
 
         MaterialToolbar toolbar = findViewById(R.id.toolbar);
         toolbar.setNavigationOnClickListener(v -> finish());
 
-        ImageView ivPhoto = findViewById(R.id.iv_detail_photo);
-        TextView tvTitle = findViewById(R.id.tv_detail_title);
-        TextView tvDate = findViewById(R.id.tv_detail_date);
-        TextView tvDescription = findViewById(R.id.tv_detail_description);
-        Button btnDelete = findViewById(R.id.btn_delete_detail);
+        ivPhoto = findViewById(R.id.iv_detail_photo);
+        tvTitle = findViewById(R.id.tv_detail_title);
+        tvDate = findViewById(R.id.tv_detail_date);
+        tvDescription = findViewById(R.id.tv_detail_description);
+        btnDelete = findViewById(R.id.btn_delete_detail);
+
+        // Add ProgressBar if not in layout, or use existing views
+        progressBar = findViewById(R.id.progress_bar);
 
         int recordId = getIntent().getIntExtra(EXTRA_RECORD_ID, -1);
         if (recordId != -1) {
-            currentRecord = recordController.getRecordById(recordId);
-        }
-
-        if (currentRecord == null) {
-            Toast.makeText(this, "No se pudo cargar el registro", Toast.LENGTH_SHORT).show();
-            finish();
-            return;
-        }
-
-        tvTitle.setText(currentRecord.getTitulo());
-        tvDate.setText(currentRecord.getFecha());
-        tvDescription.setText(currentRecord.getDescripcion());
-
-        Bitmap bitmap = RecordController.base64ToBitmap(currentRecord.getFotografiaBase64());
-        if (bitmap != null) {
-            ivPhoto.setPadding(0, 0, 0, 0);
-            ivPhoto.setScaleType(ImageView.ScaleType.CENTER_CROP);
-            ivPhoto.setImageBitmap(bitmap);
+            setupObservers();
+            viewModel.fetchRecordById(recordId);
         } else {
-            int paddingPx = (int) (32 * getResources().getDisplayMetrics().density);
-            ivPhoto.setPadding(paddingPx, paddingPx, paddingPx, paddingPx);
-            ivPhoto.setScaleType(ImageView.ScaleType.FIT_CENTER);
-            ivPhoto.setImageResource(R.drawable.ic_camera_placeholder);
+            Toast.makeText(this, "ID de registro inválido", Toast.LENGTH_SHORT).show();
+            finish();
         }
 
         btnDelete.setOnClickListener(v -> showDeleteConfirmationDialog());
     }
 
+    private void setupObservers() {
+        viewModel.getRecordDetailLiveData().observe(this, record -> {
+            if (record != null) {
+                currentRecord = record;
+                tvTitle.setText(record.getTitulo());
+                tvDate.setText(record.getFecha());
+                tvDescription.setText(record.getDescripcion());
+
+                Bitmap bitmap = RecordController.base64ToBitmap(record.getFotografiaBase64());
+                if (bitmap != null) {
+                    ivPhoto.setPadding(0, 0, 0, 0);
+                    ivPhoto.setScaleType(ImageView.ScaleType.CENTER_CROP);
+                    ivPhoto.setImageBitmap(bitmap);
+                } else {
+                    int paddingPx = (int) (32 * getResources().getDisplayMetrics().density);
+                    ivPhoto.setPadding(paddingPx, paddingPx, paddingPx, paddingPx);
+                    ivPhoto.setScaleType(ImageView.ScaleType.FIT_CENTER);
+                    ivPhoto.setImageResource(R.drawable.ic_camera_placeholder);
+                }
+            }
+        });
+
+        viewModel.getIsLoadingLiveData().observe(this, isLoading -> {
+            if (progressBar != null) {
+                progressBar.setVisibility(isLoading ? View.VISIBLE : View.GONE);
+            }
+            btnDelete.setEnabled(!isLoading);
+        });
+
+        viewModel.getErrorMessageLiveData().observe(this, errorMsg -> {
+            if (errorMsg != null && !errorMsg.isEmpty()) {
+                Toast.makeText(this, errorMsg, Toast.LENGTH_LONG).show();
+            }
+        });
+
+        viewModel.getOperationSuccessLiveData().observe(this, success -> {
+            if (success != null && success) {
+                Toast.makeText(this, "Registro eliminado exitosamente", Toast.LENGTH_SHORT).show();
+                finish();
+            }
+        });
+    }
+
     private void showDeleteConfirmationDialog() {
+        if (currentRecord == null) return;
         new AlertDialog.Builder(this)
                 .setTitle("Eliminar Registro")
                 .setMessage("¿Estás seguro de que deseas eliminar este registro de la bitácora?")
                 .setPositiveButton("Eliminar", (dialog, which) -> {
-                    boolean success = recordController.deleteRecord(currentRecord.getId());
-                    if (success) {
-                        Toast.makeText(this, "Registro eliminado", Toast.LENGTH_SHORT).show();
-                        finish();
-                    } else {
-                        Toast.makeText(this, "Error al eliminar el registro", Toast.LENGTH_SHORT).show();
-                    }
+                    viewModel.deleteRecord(currentRecord.getId());
                 })
                 .setNegativeButton("Cancelar", null)
                 .show();

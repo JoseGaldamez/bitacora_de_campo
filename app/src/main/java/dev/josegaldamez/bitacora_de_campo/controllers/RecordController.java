@@ -59,7 +59,12 @@ public class RecordController {
     public static Bitmap base64ToBitmap(String base64Str) {
         if (base64Str == null || base64Str.trim().isEmpty()) return null;
         try {
-            byte[] decodedBytes = Base64.decode(base64Str, Base64.DEFAULT);
+            String cleanBase64 = base64Str.trim();
+            int commaIndex = cleanBase64.indexOf(',');
+            if (commaIndex >= 0) {
+                cleanBase64 = cleanBase64.substring(commaIndex + 1);
+            }
+            byte[] decodedBytes = Base64.decode(cleanBase64, Base64.DEFAULT);
             return BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.length);
         } catch (Exception e) {
             e.printStackTrace();

@@ -1,10 +1,24 @@
 package dev.josegaldamez.bitacora_de_campo.models;
 
+import com.google.gson.annotations.SerializedName;
+
 public class Record {
+    @SerializedName("id")
     private int id;
+
+    @SerializedName("titulo")
     private String titulo;
+
+    @SerializedName("descripcion")
     private String descripcion;
+
+    @SerializedName("tieneFoto")
+    private boolean tieneFoto;
+
+    @SerializedName(value = "fotoBase64", alternate = {"fotografiaBase64", "fotografia", "fotografia_base64"})
     private String fotografiaBase64;
+
+    @SerializedName(value = "fechaCreacion", alternate = {"fecha"})
     private String fecha;
 
     public Record() {
@@ -15,6 +29,7 @@ public class Record {
         this.titulo = titulo;
         this.descripcion = descripcion;
         this.fotografiaBase64 = fotografiaBase64;
+        this.tieneFoto = fotografiaBase64 != null && !fotografiaBase64.isEmpty();
         this.fecha = fecha;
     }
 
@@ -22,6 +37,7 @@ public class Record {
         this.titulo = titulo;
         this.descripcion = descripcion;
         this.fotografiaBase64 = fotografiaBase64;
+        this.tieneFoto = fotografiaBase64 != null && !fotografiaBase64.isEmpty();
         this.fecha = fecha;
     }
 
@@ -47,6 +63,14 @@ public class Record {
 
     public void setDescripcion(String descripcion) {
         this.descripcion = descripcion;
+    }
+
+    public boolean isTieneFoto() {
+        return tieneFoto;
+    }
+
+    public void setTieneFoto(boolean tieneFoto) {
+        this.tieneFoto = tieneFoto;
     }
 
     public String getFotografiaBase64() {

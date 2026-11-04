@@ -5,15 +5,18 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.speech.RecognizerIntent;
+import android.util.Base64;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -24,31 +27,38 @@ import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.google.android.material.appbar.MaterialToolbar;
 
+import java.io.ByteArrayOutputStream;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Locale;
 
 import dev.josegaldamez.bitacora_de_campo.R;
-import dev.josegaldamez.bitacora_de_campo.controllers.RecordController;
+import dev.josegaldamez.bitacora_de_campo.models.Record;
+import dev.josegaldamez.bitacora_de_campo.viewmodel.RegistroViewModel;
 
 public class AddRecordActivity extends AppCompatActivity {
 
     private EditText etTitle;
     private EditText etDescription;
     private ImageView ivPhotoPreview;
+    private ProgressBar progressBar;
+    private Button btnSaveRecord;
     private Bitmap capturedBitmap;
 
-    private RecordController recordController;
+    private RegistroViewModel viewModel;
 
     private final ActivityResultLauncher<Void> cameraLauncher =
             registerForActivityResult(new ActivityResultContracts.TakePicturePreview(), bitmap -> {
                 if (bitmap != null) {
-                    capturedBitmap = bitmap;
+                    capturedBitmap = resizeBitmap(bitmap, 1024);
                     ivPhotoPreview.setPadding(0, 0, 0, 0);
                     ivPhotoPreview.setScaleType(ImageView.ScaleType.CENTER_CROP);
-                    ivPhotoPreview.setImageBitmap(bitmap);
+                    ivPhotoPreview.setImageBitmap(capturedBitmap);
                 }
             });
 
@@ -89,7 +99,7 @@ public class AddRecordActivity extends AppCompatActivity {
             return insets;
         });
 
-        recordController = new RecordController(this);
+        viewModel = new ViewModelProvider(this).get(RegistroViewModel.class);
 
         MaterialToolbar toolbar = findViewById(R.id.toolbar);
         toolbar.setNavigationOnClickListener(v -> finish());
@@ -97,16 +107,36 @@ public class AddRecordActivity extends AppCompatActivity {
         etTitle = findViewById(R.id.et_title);
         etDescription = findViewById(R.id.et_description);
         ivPhotoPreview = findViewById(R.id.iv_photo_preview);
+        progressBar = findViewById(R.id.progress_bar);
 
         Button btnTakePhoto = findViewById(R.id.btn_take_photo);
         Button btnVoiceToText = findViewById(R.id.btn_voice_to_text);
-        Button btnSaveRecord = findViewById(R.id.btn_save_record);
+        btnSaveRecord = findViewById(R.id.btn_save_record);
 
         btnTakePhoto.setOnClickListener(v -> openCamera());
-
         btnVoiceToText.setOnClickListener(v -> startSpeechToText());
-
         btnSaveRecord.setOnClickListener(v -> saveRecord());
+
+        setupObservers();
+    }
+
+    private void setupObservers() {
+        viewModel.getIsLoadingLiveData().observe(this, isLoading -> {
+            progressBar.setVisibility(isLoading ? View.VISIBLE : View.GONE);
+            btnSaveRecord.setEnabled(!isLoading);
+        });
+
+        viewModel.getErrorMessageLiveData().observe(this, errorMsg -> {
+            if (errorMsg != null && !errorMsg.isEmpty()) {
+                Toast.makeText(this, errorMsg, Toast.LENGTH_LONG).show();
+            }
+        });
+
+        viewModel.getOperationSuccessLiveData().observe(this, success -> {
+            if (success != null && success) {
+                finish();
+            }
+        });
     }
 
     @Override
@@ -170,12 +200,38 @@ public class AddRecordActivity extends AppCompatActivity {
             return;
         }
 
-        boolean success = recordController.addRecord(title, description, capturedBitmap);
-        if (success) {
-            Toast.makeText(this, "Registro guardado exitosamente en SQLite", Toast.LENGTH_SHORT).show();
-            finish();
-        } else {
-            Toast.makeText(this, "Error al guardar el registro", Toast.LENGTH_SHORT).show();
+        String base64Photo = bitmapToBase64(capturedBitmap);
+        String fechaActual = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(new Date());
+
+        Record newRecord = new Record(title, description, base64Photo, fechaActual);
+        viewModel.createRecord(newRecord);
+    }
+
+    private Bitmap resizeBitmap(Bitmap bitmap, int maxSize) {
+        int width = bitmap.getWidth();
+        int height = bitmap.getHeight();
+
+        if (width <= maxSize && height <= maxSize) {
+            return bitmap;
         }
+
+        float bitmapRatio = (float) width / (float) height;
+        if (bitmapRatio > 1) {
+            width = maxSize;
+            height = (int) (width / bitmapRatio);
+        } else {
+            height = maxSize;
+            width = (int) (height * bitmapRatio);
+        }
+
+        return Bitmap.createScaledBitmap(bitmap, width, height, true);
+    }
+
+    private String bitmapToBase64(Bitmap bitmap) {
+        if (bitmap == null) return "";
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 70, byteArrayOutputStream);
+        byte[] byteArray = byteArrayOutputStream.toByteArray();
+        return Base64.encodeToString(byteArray, Base64.DEFAULT);
     }
 }

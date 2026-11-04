@@ -3,7 +3,10 @@ package dev.josegaldamez.bitacora_de_campo.views;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -12,24 +15,32 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.List;
 
 import dev.josegaldamez.bitacora_de_campo.R;
-import dev.josegaldamez.bitacora_de_campo.controllers.RecordController;
 import dev.josegaldamez.bitacora_de_campo.models.Record;
+import dev.josegaldamez.bitacora_de_campo.viewmodel.RegistroViewModel;
 
 public class MainActivity extends AppCompatActivity implements RecordAdapter.OnRecordClickListener {
 
-    private RecordController recordController;
+    private RegistroViewModel viewModel;
     private RecordAdapter recordAdapter;
 
     private RecyclerView rvRecords;
+    private SwipeRefreshLayout swipeRefresh;
+    private ProgressBar progressBar;
     private LinearLayout llEmptyState;
+    private LinearLayout llErrorState;
+    private TextView tvErrorMessage;
+    private Button btnRetry;
+    private FloatingActionButton fabAddRecord;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,15 +54,31 @@ public class MainActivity extends AppCompatActivity implements RecordAdapter.OnR
             return insets;
         });
 
-        recordController = new RecordController(this);
+        // Initialize ViewModel
+        viewModel = new ViewModelProvider(this).get(RegistroViewModel.class);
 
+        // Bind views
         rvRecords = findViewById(R.id.rv_records);
+        swipeRefresh = findViewById(R.id.swipe_refresh);
+        progressBar = findViewById(R.id.progress_bar);
         llEmptyState = findViewById(R.id.ll_empty_state);
-        FloatingActionButton fabAddRecord = findViewById(R.id.fab_add_record);
+        llErrorState = findViewById(R.id.ll_error_state);
+        tvErrorMessage = findViewById(R.id.tv_error_message);
+        btnRetry = findViewById(R.id.btn_retry);
+        fabAddRecord = findViewById(R.id.fab_add_record);
 
         rvRecords.setLayoutManager(new LinearLayoutManager(this));
         recordAdapter = new RecordAdapter(this);
         rvRecords.setAdapter(recordAdapter);
+
+        setupObservers();
+
+        swipeRefresh.setOnRefreshListener(() -> viewModel.fetchRecords());
+
+        btnRetry.setOnClickListener(v -> {
+            llErrorState.setVisibility(View.GONE);
+            viewModel.fetchRecords();
+        });
 
         fabAddRecord.setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, AddRecordActivity.class);
@@ -62,20 +89,54 @@ public class MainActivity extends AppCompatActivity implements RecordAdapter.OnR
     @Override
     protected void onResume() {
         super.onResume();
-        loadRecords();
+        viewModel.fetchRecords();
     }
 
-    private void loadRecords() {
-        List<Record> records = recordController.getAllRecords();
-        recordAdapter.setRecords(records);
+    private void setupObservers() {
+        viewModel.getRecordsLiveData().observe(this, records -> {
+            swipeRefresh.setRefreshing(false);
+            llErrorState.setVisibility(View.GONE);
 
-        if (records.isEmpty()) {
-            llEmptyState.setVisibility(View.VISIBLE);
-            rvRecords.setVisibility(View.GONE);
-        } else {
-            llEmptyState.setVisibility(View.GONE);
-            rvRecords.setVisibility(View.VISIBLE);
-        }
+            if (records == null || records.isEmpty()) {
+                llEmptyState.setVisibility(View.VISIBLE);
+                rvRecords.setVisibility(View.GONE);
+            } else {
+                llEmptyState.setVisibility(View.GONE);
+                rvRecords.setVisibility(View.VISIBLE);
+                recordAdapter.setRecords(records);
+            }
+        });
+
+        viewModel.getIsLoadingLiveData().observe(this, isLoading -> {
+            if (!swipeRefresh.isRefreshing()) {
+                progressBar.setVisibility(isLoading ? View.VISIBLE : View.GONE);
+            }
+            fabAddRecord.setEnabled(!isLoading);
+        });
+
+        viewModel.getErrorMessageLiveData().observe(this, errorMsg -> {
+            swipeRefresh.setRefreshing(false);
+            progressBar.setVisibility(View.GONE);
+
+            if (errorMsg != null && !errorMsg.isEmpty()) {
+                // If we already have records shown, show a Toast; otherwise show error state view
+                List<Record> currentRecords = viewModel.getRecordsLiveData().getValue();
+                if (currentRecords == null || currentRecords.isEmpty()) {
+                    llErrorState.setVisibility(View.VISIBLE);
+                    rvRecords.setVisibility(View.GONE);
+                    llEmptyState.setVisibility(View.GONE);
+                    tvErrorMessage.setText(errorMsg);
+                } else {
+                    Toast.makeText(this, errorMsg, Toast.LENGTH_LONG).show();
+                }
+            }
+        });
+
+        viewModel.getSuccessMessageLiveData().observe(this, successMsg -> {
+            if (successMsg != null && !successMsg.isEmpty()) {
+                Toast.makeText(this, successMsg, Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     @Override
@@ -91,13 +152,9 @@ public class MainActivity extends AppCompatActivity implements RecordAdapter.OnR
                 .setTitle("Eliminar Registro")
                 .setMessage("¿Deseas eliminar el registro '" + record.getTitulo() + "'?")
                 .setPositiveButton("Eliminar", (dialog, which) -> {
-                    boolean success = recordController.deleteRecord(record.getId());
-                    if (success) {
-                        Toast.makeText(this, "Registro eliminado", Toast.LENGTH_SHORT).show();
-                        loadRecords();
-                    } else {
-                        Toast.makeText(this, "Error al eliminar el registro", Toast.LENGTH_SHORT).show();
-                    }
+                    viewModel.deleteRecord(record.getId());
+                    // Refresh after delete
+                    viewModel.fetchRecords();
                 })
                 .setNegativeButton("Cancelar", null)
                 .show();
