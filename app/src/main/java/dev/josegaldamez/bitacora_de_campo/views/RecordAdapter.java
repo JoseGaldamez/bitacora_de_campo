@@ -18,6 +18,10 @@ import dev.josegaldamez.bitacora_de_campo.R;
 import dev.josegaldamez.bitacora_de_campo.controllers.RecordController;
 import dev.josegaldamez.bitacora_de_campo.models.Record;
 
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Locale;
+
 public class RecordAdapter extends RecyclerView.Adapter<RecordAdapter.RecordViewHolder> {
 
     public interface OnRecordClickListener {
@@ -73,7 +77,26 @@ public class RecordAdapter extends RecyclerView.Adapter<RecordAdapter.RecordView
 
         public void bind(Record record, OnRecordClickListener listener) {
             tvTitle.setText(record.getTitulo());
-            tvDate.setText(record.getFecha());
+
+
+            try {
+                OffsetDateTime fecha = OffsetDateTime.parse(record.getFecha());
+
+                DateTimeFormatter formato = DateTimeFormatter.ofPattern(
+                        "d 'de' MMMM 'de' yyyy, h:mm a",
+                        new Locale("es", "HN")
+                );
+
+                String fechaLegible = fecha.atZoneSameInstant(
+                        java.time.ZoneId.systemDefault()
+                ).format(formato);
+
+                tvDate.setText(fechaLegible);
+
+            } catch (Exception e) {
+                tvDate.setText(record.getFecha());
+            }
+
             tvDescription.setText(record.getDescripcion());
 
             Bitmap bitmap = RecordController.base64ToBitmap(record.getFotografiaBase64());
