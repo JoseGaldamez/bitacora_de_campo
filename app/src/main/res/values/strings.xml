@@ -1,3 +1,4 @@
 <resources>
-    <string name="app_name">bitacora_de_campo</string>
+    <string name="app_name">Bitácora de Campo</string>
+    <string name="appbar_scrolling_view_behavior">com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior</string>
 </resources>

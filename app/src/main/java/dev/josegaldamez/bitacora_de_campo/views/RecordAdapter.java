@@ -105,7 +105,7 @@ public class RecordAdapter extends RecyclerView.Adapter<RecordAdapter.RecordView
                 ivPhoto.setScaleType(ImageView.ScaleType.CENTER_CROP);
                 ivPhoto.setImageBitmap(bitmap);
             } else {
-                int paddingPx = (int) (12 * itemView.getResources().getDisplayMetrics().density);
+                int paddingPx = (int) (18 * itemView.getResources().getDisplayMetrics().density);
                 ivPhoto.setPadding(paddingPx, paddingPx, paddingPx, paddingPx);
                 ivPhoto.setScaleType(ImageView.ScaleType.FIT_CENTER);
                 ivPhoto.setImageResource(R.drawable.ic_camera_placeholder);

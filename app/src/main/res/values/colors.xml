@@ -1,5 +1,52 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Base black and white -->
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <!-- Editorial Nature / Botanical Field Palette -->
+    <color name="forest_primary">#1E3F30</color>
+    <color name="forest_primary_dark">#132B21</color>
+    <color name="forest_primary_light">#2E614B</color>
+    <color name="forest_primary_container">#E3EEE7</color>
+    <color name="forest_on_primary">#FFFFFF</color>
+    <color name="forest_on_primary_container">#0A251A</color>
+
+    <!-- Secondary & Accent -->
+    <color name="forest_secondary">#476153</color>
+    <color name="forest_secondary_container">#DCE8DF</color>
+    <color name="forest_on_secondary">#FFFFFF</color>
+    <color name="forest_on_secondary_container">#111E17</color>
+
+    <!-- Surfaces & Backgrounds (Light Theme) -->
+    <color name="color_background_light">#F8FAF8</color>
+    <color name="color_surface_light">#FFFFFF</color>
+    <color name="color_surface_variant_light">#EEF3EF</color>
+    <color name="color_on_surface_light">#171D1A</color>
+    <color name="color_on_surface_variant_light">#525F58</color>
+    <color name="color_outline_light">#728178</color>
+    <color name="color_outline_variant_light">#E1E7E3</color>
+
+    <!-- Surfaces & Backgrounds (Dark Theme) -->
+    <color name="color_background_dark">#101512</color>
+    <color name="color_surface_dark">#161C19</color>
+    <color name="color_surface_variant_dark">#222B26</color>
+    <color name="color_on_surface_dark">#E2E7E3</color>
+    <color name="color_on_surface_variant_dark">#C0C9C3</color>
+    <color name="color_outline_dark">#8A968F</color>
+    <color name="color_outline_variant_dark">#2B362F</color>
+
+    <!-- Error States -->
+    <color name="color_error">#BA1A1A</color>
+    <color name="color_on_error">#FFFFFF</color>
+    <color name="color_error_container">#FFDAD6</color>
+    <color name="color_error_container_subtle">#FDEEEF</color>
+    <color name="color_error_ripple">#25BA1A1A</color>
+    <color name="color_delete_btn_bg">#FBF1F1</color>
+
+    <!-- Soft functional accents -->
+    <color name="color_primary_container_subtle">#EDF5F0</color>
+    <color name="color_date_chip_bg">#EDF3EF</color>
+    <color name="color_photo_placeholder_bg">#F0F4F1</color>
+    <color name="color_photo_hero_bg">#E9EFEA</color>
 </resources>
