@@ -39,7 +39,6 @@ public class MainActivity extends AppCompatActivity implements RecordAdapter.OnR
     private LinearLayout llEmptyState;
     private LinearLayout llErrorState;
     private TextView tvErrorMessage;
-    private Button btnRetry;
     private FloatingActionButton fabAddRecord;
 
     @Override
@@ -54,17 +53,15 @@ public class MainActivity extends AppCompatActivity implements RecordAdapter.OnR
             return insets;
         });
 
-        // Initialize ViewModel
         viewModel = new ViewModelProvider(this).get(RegistroViewModel.class);
 
-        // Bind views
         rvRecords = findViewById(R.id.rv_records);
         swipeRefresh = findViewById(R.id.swipe_refresh);
         progressBar = findViewById(R.id.progress_bar);
         llEmptyState = findViewById(R.id.ll_empty_state);
         llErrorState = findViewById(R.id.ll_error_state);
         tvErrorMessage = findViewById(R.id.tv_error_message);
-        btnRetry = findViewById(R.id.btn_retry);
+        Button btnRetry = findViewById(R.id.btn_retry);
         fabAddRecord = findViewById(R.id.fab_add_record);
 
         rvRecords.setLayoutManager(new LinearLayoutManager(this));
@@ -119,7 +116,6 @@ public class MainActivity extends AppCompatActivity implements RecordAdapter.OnR
             progressBar.setVisibility(View.GONE);
 
             if (errorMsg != null && !errorMsg.isEmpty()) {
-                // If we already have records shown, show a Toast; otherwise show error state view
                 List<Record> currentRecords = viewModel.getRecordsLiveData().getValue();
                 if (currentRecords == null || currentRecords.isEmpty()) {
                     llErrorState.setVisibility(View.VISIBLE);
@@ -147,13 +143,19 @@ public class MainActivity extends AppCompatActivity implements RecordAdapter.OnR
     }
 
     @Override
+    public void onEditClick(Record record) {
+        Intent intent = new Intent(MainActivity.this, AddRecordActivity.class);
+        intent.putExtra(AddRecordActivity.EXTRA_RECORD_ID, record.getId());
+        startActivity(intent);
+    }
+
+    @Override
     public void onDeleteClick(Record record) {
         new AlertDialog.Builder(this)
                 .setTitle("Eliminar Registro")
                 .setMessage("¿Deseas eliminar el registro '" + record.getTitulo() + "'?")
                 .setPositiveButton("Eliminar", (dialog, which) -> {
                     viewModel.deleteRecord(record.getId());
-                    // Refresh after delete
                     viewModel.fetchRecords();
                 })
                 .setNegativeButton("Cancelar", null)

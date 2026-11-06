@@ -43,14 +43,19 @@ import dev.josegaldamez.bitacora_de_campo.viewmodel.RegistroViewModel;
 
 public class AddRecordActivity extends AppCompatActivity {
 
+    public static final String EXTRA_RECORD_ID = "extra_record_id";
+
     private EditText etTitle;
     private EditText etDescription;
     private ImageView ivPhotoPreview;
     private ProgressBar progressBar;
     private Button btnSaveRecord;
     private Bitmap capturedBitmap;
+    private String existingPhotoBase64 = "";
 
     private RegistroViewModel viewModel;
+    private int editRecordId = -1;
+    private boolean isEditMode = false;
 
     private final ActivityResultLauncher<Void> cameraLauncher =
             registerForActivityResult(new ActivityResultContracts.TakePicturePreview(), bitmap -> {
@@ -113,6 +118,17 @@ public class AddRecordActivity extends AppCompatActivity {
         Button btnVoiceToText = findViewById(R.id.btn_voice_to_text);
         btnSaveRecord = findViewById(R.id.btn_save_record);
 
+        // Check if editing
+        if (getIntent().hasExtra(EXTRA_RECORD_ID)) {
+            editRecordId = getIntent().getIntExtra(EXTRA_RECORD_ID, -1);
+            if (editRecordId != -1) {
+                isEditMode = true;
+                toolbar.setTitle("Editar Registro");
+                btnSaveRecord.setText("Actualizar Registro");
+                viewModel.fetchRecordById(editRecordId);
+            }
+        }
+
         btnTakePhoto.setOnClickListener(v -> openCamera());
         btnVoiceToText.setOnClickListener(v -> startSpeechToText());
         btnSaveRecord.setOnClickListener(v -> saveRecord());
@@ -121,6 +137,24 @@ public class AddRecordActivity extends AppCompatActivity {
     }
 
     private void setupObservers() {
+        if (isEditMode) {
+            viewModel.getRecordDetailLiveData().observe(this, record -> {
+                if (record != null) {
+                    etTitle.setText(record.getTitulo());
+                    etDescription.setText(record.getDescripcion());
+                    existingPhotoBase64 = record.getFotografiaBase64() != null ? record.getFotografiaBase64() : "";
+
+                    Bitmap bitmap = base64ToBitmap(existingPhotoBase64);
+                    if (bitmap != null) {
+                        capturedBitmap = bitmap;
+                        ivPhotoPreview.setPadding(0, 0, 0, 0);
+                        ivPhotoPreview.setScaleType(ImageView.ScaleType.CENTER_CROP);
+                        ivPhotoPreview.setImageBitmap(bitmap);
+                    }
+                }
+            });
+        }
+
         viewModel.getIsLoadingLiveData().observe(this, isLoading -> {
             progressBar.setVisibility(isLoading ? View.VISIBLE : View.GONE);
             btnSaveRecord.setEnabled(!isLoading);
@@ -183,28 +217,45 @@ public class AddRecordActivity extends AppCompatActivity {
         String title = etTitle.getText().toString().trim();
         String description = etDescription.getText().toString().trim();
 
+        // Validations matching API specifications
         if (title.isEmpty()) {
-            etTitle.setError("Ingrese un título");
+            etTitle.setError("El título es requerido");
+            etTitle.requestFocus();
+            return;
+        }
+        if (title.length() < 3 || title.length() > 100) {
+            etTitle.setError("El título debe tener entre 3 y 100 caracteres");
             etTitle.requestFocus();
             return;
         }
 
-        if (capturedBitmap == null) {
-            Toast.makeText(this, "Por favor tome una fotografía antes de guardar.", Toast.LENGTH_SHORT).show();
+        if (description.isEmpty()) {
+            etDescription.setError("La descripción es requerida");
+            etDescription.requestFocus();
             return;
         }
-
-        if (description.isEmpty()) {
-            etDescription.setError("Ingrese o dicte una descripción");
+        if (description.length() > 500) {
+            etDescription.setError("La descripción no puede exceder los 500 caracteres");
             etDescription.requestFocus();
             return;
         }
 
-        String base64Photo = bitmapToBase64(capturedBitmap);
+        if (capturedBitmap == null && existingPhotoBase64.isEmpty()) {
+            Toast.makeText(this, "Por favor tome una fotografía antes de guardar.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String base64Photo = capturedBitmap != null ? bitmapToBase64(capturedBitmap) : existingPhotoBase64;
         String fechaActual = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(new Date());
 
-        Record newRecord = new Record(title, description, base64Photo, fechaActual);
-        viewModel.createRecord(newRecord);
+        Record record = new Record(title, description, base64Photo, fechaActual);
+
+        if (isEditMode) {
+            record.setId(editRecordId);
+            viewModel.updateRecord(editRecordId, record);
+        } else {
+            viewModel.createRecord(record);
+        }
     }
 
     private Bitmap resizeBitmap(Bitmap bitmap, int maxSize) {
@@ -233,5 +284,16 @@ public class AddRecordActivity extends AppCompatActivity {
         bitmap.compress(Bitmap.CompressFormat.JPEG, 70, byteArrayOutputStream);
         byte[] byteArray = byteArrayOutputStream.toByteArray();
         return Base64.encodeToString(byteArray, Base64.DEFAULT);
+    }
+
+    private Bitmap base64ToBitmap(String base64Str) {
+        if (base64Str == null || base64Str.trim().isEmpty()) return null;
+        try {
+            byte[] decodedBytes = Base64.decode(base64Str, Base64.DEFAULT);
+            return BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.length);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 }

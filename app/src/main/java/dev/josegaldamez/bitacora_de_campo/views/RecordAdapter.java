@@ -11,21 +11,21 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import dev.josegaldamez.bitacora_de_campo.R;
 import dev.josegaldamez.bitacora_de_campo.controllers.RecordController;
 import dev.josegaldamez.bitacora_de_campo.models.Record;
 
-import java.time.OffsetDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Locale;
-
 public class RecordAdapter extends RecyclerView.Adapter<RecordAdapter.RecordViewHolder> {
 
     public interface OnRecordClickListener {
         void onRecordClick(Record record);
+        void onEditClick(Record record);
         void onDeleteClick(Record record);
     }
 
@@ -64,6 +64,7 @@ public class RecordAdapter extends RecyclerView.Adapter<RecordAdapter.RecordView
         TextView tvTitle;
         TextView tvDate;
         TextView tvDescription;
+        ImageButton btnEdit;
         ImageButton btnDelete;
 
         public RecordViewHolder(@NonNull View itemView) {
@@ -72,27 +73,23 @@ public class RecordAdapter extends RecyclerView.Adapter<RecordAdapter.RecordView
             tvTitle = itemView.findViewById(R.id.tv_record_title);
             tvDate = itemView.findViewById(R.id.tv_record_date);
             tvDescription = itemView.findViewById(R.id.tv_record_description);
+            btnEdit = itemView.findViewById(R.id.btn_edit_record);
             btnDelete = itemView.findViewById(R.id.btn_delete_record);
         }
 
         public void bind(Record record, OnRecordClickListener listener) {
             tvTitle.setText(record.getTitulo());
 
-
             try {
                 OffsetDateTime fecha = OffsetDateTime.parse(record.getFecha());
-
                 DateTimeFormatter formato = DateTimeFormatter.ofPattern(
                         "d 'de' MMMM 'de' yyyy, h:mm a",
                         new Locale("es", "HN")
                 );
-
                 String fechaLegible = fecha.atZoneSameInstant(
                         java.time.ZoneId.systemDefault()
                 ).format(formato);
-
                 tvDate.setText(fechaLegible);
-
             } catch (Exception e) {
                 tvDate.setText(record.getFecha());
             }
@@ -113,6 +110,10 @@ public class RecordAdapter extends RecyclerView.Adapter<RecordAdapter.RecordView
 
             itemView.setOnClickListener(v -> {
                 if (listener != null) listener.onRecordClick(record);
+            });
+
+            btnEdit.setOnClickListener(v -> {
+                if (listener != null) listener.onEditClick(record);
             });
 
             btnDelete.setOnClickListener(v -> {

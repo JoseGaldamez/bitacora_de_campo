@@ -5,31 +5,22 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?android:attr/colorBackground"
+    android:background="?attr/colorSurface"
     tools:context=".views.DetailRecordActivity">
 
-    <!-- App Bar moderna -->
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="?attr/colorSurface"
-        app:liftOnScroll="true"
-        app:elevation="0dp">
+        android:layout_height="wrap_content">
 
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="?attr/colorSurface"
             app:title="Detalle del Registro"
-            app:titleTextColor="?attr/colorOnSurface"
-            app:navigationIcon="@drawable/ic_arrow_back"
-            app:navigationIconTint="?attr/colorOnSurface" />
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="?attr/colorOutlineVariant" />
+            app:titleTextColor="?attr/colorOnPrimary"
+            app:navigationIcon="@android:drawable/ic_menu_revert"
+            app:navigationIconTint="?attr/colorOnPrimary"
+            android:background="?attr/colorPrimary" />
 
     </com.google.android.material.appbar.AppBarLayout>
 
@@ -43,68 +34,46 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <!-- Contenedor Hero de la Fotografía -->
-            <com.google.android.material.card.MaterialCardView
+            <!-- Fotografía principal con esquinas redondeadas modernas -->
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/iv_detail_photo"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="16dp"
-                android:layout_marginTop="16dp"
-                app:cardCornerRadius="20dp"
-                app:cardElevation="0dp"
-                app:strokeWidth="1dp"
-                app:strokeColor="?attr/colorOutlineVariant"
-                app:cardBackgroundColor="?attr/colorSurface">
+                android:layout_height="280dp"
+                android:scaleType="centerCrop"
+                android:src="@drawable/ic_camera_placeholder"
+                android:background="@color/color_photo_placeholder_bg"
+                android:contentDescription="Fotografía del registro" />
 
-                <com.google.android.material.imageview.ShapeableImageView
-                    android:id="@+id/iv_detail_photo"
-                    android:layout_width="match_parent"
-                    android:layout_height="270dp"
-                    android:scaleType="fitCenter"
-                    android:padding="52dp"
-                    android:src="@drawable/ic_camera_placeholder"
-                    android:background="@color/color_photo_hero_bg"
-                    app:shapeAppearanceOverlay="@style/ShapeAppearance.App.Large"
-                    android:contentDescription="Fotografía del registro" />
-
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- Área de Información del Registro -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:paddingHorizontal="20dp"
-                android:paddingTop="20dp"
-                android:paddingBottom="40dp">
+                android:padding="20dp">
 
                 <!-- Título -->
                 <TextView
                     android:id="@+id/tv_detail_title"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    tools:text="Inspección de Cuadrante Este"
+                    tools:text="Inspección de Parcela Norte"
                     android:textSize="22sp"
                     android:fontFamily="sans-serif-medium"
-                    android:textColor="?attr/colorOnSurface"
-                    android:lineSpacingExtra="2dp" />
+                    android:textColor="?attr/colorOnSurface" />
 
-                <!-- Badge de Fecha y Hora -->
+                <!-- Fecha y Hora con icono -->
                 <LinearLayout
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
                     android:gravity="center_vertical"
-                    android:layout_marginTop="12dp"
-                    android:paddingHorizontal="10dp"
-                    android:paddingVertical="5dp"
-                    android:background="@drawable/bg_badge_date">
+                    android:layout_marginTop="8dp">
 
                     <ImageView
-                        android:layout_width="14dp"
-                        android:layout_height="14dp"
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
                         android:src="@drawable/ic_calendar"
-                        app:tint="?attr/colorPrimary"
-                        android:contentDescription="Icono de fecha" />
+                        app:tint="?attr/colorOutline"
+                        android:contentDescription="Icono fecha" />
 
                     <TextView
                         android:id="@+id/tv_detail_date"
@@ -112,30 +81,28 @@
                         android:layout_height="wrap_content"
                         android:layout_marginStart="6dp"
                         tools:text="24 de Octubre de 2026, 10:30 AM"
-                        android:textSize="12.5sp"
-                        android:fontFamily="sans-serif-medium"
-                        android:textColor="?attr/colorPrimary" />
+                        android:textSize="13.5sp"
+                        android:textColor="?attr/colorOutline" />
 
                 </LinearLayout>
 
-                <!-- Divisor Sutil -->
+                <!-- Divisor sutil -->
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
                     android:background="?attr/colorOutlineVariant"
-                    android:layout_marginTop="20dp"
-                    android:layout_marginBottom="20dp" />
+                    android:layout_marginVertical="18dp" />
 
-                <!-- Sección de Descripción -->
+                <!-- Encabezado Descripción -->
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="OBSERVACIONES Y NOTAS"
-                    android:textSize="11sp"
-                    android:letterSpacing="0.08"
-                    android:textStyle="bold"
-                    android:textColor="?attr/colorPrimary" />
+                    android:text="Descripción"
+                    android:textSize="13.5sp"
+                    android:fontFamily="sans-serif-medium"
+                    android:textColor="?attr/colorOnSurfaceVariant" />
 
+                <!-- Texto de Descripción -->
                 <TextView
                     android:id="@+id/tv_detail_description"
                     android:layout_width="match_parent"
@@ -147,6 +114,19 @@
                     android:textColor="?attr/colorOnSurface"
                     android:layout_marginTop="10dp" />
 
+                <!-- Botón Editar -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_edit_detail"
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
+                    android:text="Editar Registro"
+                    android:textSize="14.5sp"
+                    android:layout_marginTop="28dp"
+                    app:icon="@android:drawable/ic_menu_edit"
+                    app:iconSize="18dp"
+                    style="@style/Widget.Material3.Button.TonalButton"
+                    app:cornerRadius="14dp" />
+
                 <!-- Botón Eliminar Estilizado -->
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btn_delete_detail"
@@ -154,7 +134,7 @@
                     android:layout_height="50dp"
                     android:text="Eliminar Registro"
                     android:textSize="14.5sp"
-                    android:layout_marginTop="36dp"
+                    android:layout_marginTop="12dp"
                     app:icon="@drawable/ic_trash"
                     app:iconSize="18dp"
                     style="@style/Widget.Material3.Button.OutlinedButton"

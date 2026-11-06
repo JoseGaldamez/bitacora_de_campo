@@ -1,7 +1,10 @@
 package dev.josegaldamez.bitacora_de_campo.views;
 
+import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.util.Base64;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -18,9 +21,9 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.button.MaterialButton;
 
 import dev.josegaldamez.bitacora_de_campo.R;
-import dev.josegaldamez.bitacora_de_campo.controllers.RecordController;
 import dev.josegaldamez.bitacora_de_campo.models.Record;
 import dev.josegaldamez.bitacora_de_campo.viewmodel.RegistroViewModel;
 
@@ -35,8 +38,10 @@ public class DetailRecordActivity extends AppCompatActivity {
     private TextView tvTitle;
     private TextView tvDate;
     private TextView tvDescription;
-    private Button btnDelete;
+    private MaterialButton btnEdit;
+    private MaterialButton btnDelete;
     private ProgressBar progressBar;
+    private int recordId = -1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,21 +64,35 @@ public class DetailRecordActivity extends AppCompatActivity {
         tvTitle = findViewById(R.id.tv_detail_title);
         tvDate = findViewById(R.id.tv_detail_date);
         tvDescription = findViewById(R.id.tv_detail_description);
+        btnEdit = findViewById(R.id.btn_edit_detail);
         btnDelete = findViewById(R.id.btn_delete_detail);
-
-        // Add ProgressBar if not in layout, or use existing views
         progressBar = findViewById(R.id.progress_bar);
 
-        int recordId = getIntent().getIntExtra(EXTRA_RECORD_ID, -1);
+        recordId = getIntent().getIntExtra(EXTRA_RECORD_ID, -1);
         if (recordId != -1) {
             setupObservers();
-            viewModel.fetchRecordById(recordId);
         } else {
             Toast.makeText(this, "ID de registro inválido", Toast.LENGTH_SHORT).show();
             finish();
         }
 
+        btnEdit.setOnClickListener(v -> {
+            if (currentRecord != null) {
+                Intent intent = new Intent(DetailRecordActivity.this, AddRecordActivity.class);
+                intent.putExtra(AddRecordActivity.EXTRA_RECORD_ID, currentRecord.getId());
+                startActivity(intent);
+            }
+        });
+
         btnDelete.setOnClickListener(v -> showDeleteConfirmationDialog());
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (recordId != -1) {
+            viewModel.fetchRecordById(recordId);
+        }
     }
 
     private void setupObservers() {
@@ -81,22 +100,10 @@ public class DetailRecordActivity extends AppCompatActivity {
             if (record != null) {
                 currentRecord = record;
                 tvTitle.setText(record.getTitulo());
-                try {
-                    java.time.OffsetDateTime fecha = java.time.OffsetDateTime.parse(record.getFecha());
-                    java.time.format.DateTimeFormatter formato = java.time.format.DateTimeFormatter.ofPattern(
-                            "d 'de' MMMM 'de' yyyy, h:mm a",
-                            new java.util.Locale("es", "HN")
-                    );
-                    String fechaLegible = fecha.atZoneSameInstant(
-                            java.time.ZoneId.systemDefault()
-                    ).format(formato);
-                    tvDate.setText(fechaLegible);
-                } catch (Exception e) {
-                    tvDate.setText(record.getFecha());
-                }
+                tvDate.setText(record.getFecha());
                 tvDescription.setText(record.getDescripcion());
 
-                Bitmap bitmap = RecordController.base64ToBitmap(record.getFotografiaBase64());
+                Bitmap bitmap = base64ToBitmap(record.getFotografiaBase64());
                 if (bitmap != null) {
                     ivPhoto.setPadding(0, 0, 0, 0);
                     ivPhoto.setScaleType(ImageView.ScaleType.CENTER_CROP);
@@ -115,6 +122,7 @@ public class DetailRecordActivity extends AppCompatActivity {
                 progressBar.setVisibility(isLoading ? View.VISIBLE : View.GONE);
             }
             btnDelete.setEnabled(!isLoading);
+            btnEdit.setEnabled(!isLoading);
         });
 
         viewModel.getErrorMessageLiveData().observe(this, errorMsg -> {
@@ -136,10 +144,19 @@ public class DetailRecordActivity extends AppCompatActivity {
         new AlertDialog.Builder(this)
                 .setTitle("Eliminar Registro")
                 .setMessage("¿Estás seguro de que deseas eliminar este registro de la bitácora?")
-                .setPositiveButton("Eliminar", (dialog, which) -> {
-                    viewModel.deleteRecord(currentRecord.getId());
-                })
+                .setPositiveButton("Eliminar", (dialog, which) -> viewModel.deleteRecord(currentRecord.getId()))
                 .setNegativeButton("Cancelar", null)
                 .show();
+    }
+
+    private Bitmap base64ToBitmap(String base64Str) {
+        if (base64Str == null || base64Str.trim().isEmpty()) return null;
+        try {
+            byte[] decodedBytes = Base64.decode(base64Str, Base64.DEFAULT);
+            return BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.length);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 }
