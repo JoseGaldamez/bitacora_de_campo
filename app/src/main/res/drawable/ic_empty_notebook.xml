@@ -1,0 +1,22 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="64dp"
+    android:height="64dp"
+    android:viewportWidth="48"
+    android:viewportHeight="48">
+    <!-- Notebook cover -->
+    <path
+        android:fillColor="#2D5A43"
+        android:pathData="M11,6h24c2.2,0 4,1.8 4,4v28c0,2.2 -1.8,4 -4,4H11c-2.2,0 -4,-1.8 -4,-4V10c0,-2.2 1.8,-4 4,-4z" />
+    <!-- Spine binding -->
+    <path
+        android:fillColor="#1B3B2B"
+        android:pathData="M7,10c0,-2.2 1.8,-4 4,-4h4v36h-4c-2.2,0 -4,-1.8 -4,-4V10z" />
+    <!-- Bookmark ribbon -->
+    <path
+        android:fillColor="#D89A5B"
+        android:pathData="M27,6h4v16l-2,-2 -2,2V6z" />
+    <!-- Notebook lines -->
+    <path
+        android:fillColor="#6B9680"
+        android:pathData="M20,26h12v2H20zM20,31h9v2H20z" />
+</vector>

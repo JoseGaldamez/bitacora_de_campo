@@ -81,7 +81,19 @@ public class DetailRecordActivity extends AppCompatActivity {
             if (record != null) {
                 currentRecord = record;
                 tvTitle.setText(record.getTitulo());
-                tvDate.setText(record.getFecha());
+                try {
+                    java.time.OffsetDateTime fecha = java.time.OffsetDateTime.parse(record.getFecha());
+                    java.time.format.DateTimeFormatter formato = java.time.format.DateTimeFormatter.ofPattern(
+                            "d 'de' MMMM 'de' yyyy, h:mm a",
+                            new java.util.Locale("es", "HN")
+                    );
+                    String fechaLegible = fecha.atZoneSameInstant(
+                            java.time.ZoneId.systemDefault()
+                    ).format(formato);
+                    tvDate.setText(fechaLegible);
+                } catch (Exception e) {
+                    tvDate.setText(record.getFecha());
+                }
                 tvDescription.setText(record.getDescripcion());
 
                 Bitmap bitmap = RecordController.base64ToBitmap(record.getFotografiaBase64());

@@ -1,12 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginHorizontal="12dp"
+    android:layout_marginHorizontal="16dp"
     android:layout_marginVertical="6dp"
-    app:cardCornerRadius="12dp"
-    app:cardElevation="3dp">
+    app:cardCornerRadius="18dp"
+    app:cardElevation="0dp"
+    app:strokeWidth="1dp"
+    app:strokeColor="?attr/colorOutlineVariant"
+    app:cardBackgroundColor="?attr/colorSurface">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -15,64 +19,91 @@
         android:padding="12dp"
         android:gravity="center_vertical">
 
+        <!-- Fotografía con bordes redondeados modernos -->
         <com.google.android.material.imageview.ShapeableImageView
             android:id="@+id/iv_record_photo"
-            android:layout_width="72dp"
-            android:layout_height="72dp"
+            android:layout_width="82dp"
+            android:layout_height="82dp"
             android:scaleType="centerCrop"
             android:src="@drawable/ic_camera_placeholder"
-            android:background="#F5F5F5"
-            app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Medium" />
+            android:background="@color/color_photo_placeholder_bg"
+            app:shapeAppearanceOverlay="@style/ShapeAppearance.App.Medium"
+            android:contentDescription="Foto del registro" />
 
+        <!-- Contenido textual -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:orientation="vertical"
-            android:layout_marginStart="12dp"
-            android:layout_marginEnd="8dp">
+            android:layout_marginStart="14dp"
+            android:layout_marginEnd="6dp">
 
+            <!-- Título -->
             <TextView
                 android:id="@+id/tv_record_title"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Título del registro"
-                android:textSize="16sp"
-                android:textStyle="bold"
+                tools:text="Inspección de Parcela Norte"
+                android:textSize="15sp"
+                android:fontFamily="sans-serif-medium"
                 android:textColor="?attr/colorOnSurface"
                 android:maxLines="1"
                 android:ellipsize="end" />
 
-            <TextView
-                android:id="@+id/tv_record_date"
-                android:layout_width="match_parent"
+            <!-- Fecha y Hora con icono -->
+            <LinearLayout
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="01/01/2025 12:00"
-                android:textSize="12sp"
-                android:textColor="?attr/colorOutline"
-                android:layout_marginTop="2dp" />
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginTop="3dp">
 
+                <ImageView
+                    android:layout_width="13dp"
+                    android:layout_height="13dp"
+                    android:src="@drawable/ic_calendar"
+                    app:tint="?attr/colorOutline"
+                    android:contentDescription="Fecha" />
+
+                <TextView
+                    android:id="@+id/tv_record_date"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="4dp"
+                    tools:text="24 de Octubre de 2026, 10:30 AM"
+                    android:textSize="11.5sp"
+                    android:textColor="?attr/colorOutline"
+                    android:maxLines="1"
+                    android:ellipsize="end" />
+
+            </LinearLayout>
+
+            <!-- Descripción -->
             <TextView
                 android:id="@+id/tv_record_description"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Descripción corta del registro de bitácora..."
-                android:textSize="13sp"
+                tools:text="Muestras recolectadas con humedad óptima en el suelo arenoso..."
+                android:textSize="12.5sp"
                 android:textColor="?attr/colorOnSurfaceVariant"
                 android:maxLines="2"
                 android:ellipsize="end"
-                android:layout_marginTop="4dp" />
+                android:lineSpacingExtra="2dp"
+                android:layout_marginTop="5dp" />
 
         </LinearLayout>
 
+        <!-- Botón eliminar con ripple suave y diseño circular -->
         <ImageButton
             android:id="@+id/btn_delete_record"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
+            android:layout_width="38dp"
+            android:layout_height="38dp"
+            android:background="@drawable/bg_delete_circle"
             android:contentDescription="Eliminar registro"
-            android:src="@android:drawable/ic_menu_delete"
-            app:tint="?attr/colorError" />
+            android:src="@drawable/ic_trash"
+            app:tint="?attr/colorError"
+            android:padding="8dp" />
 
     </LinearLayout>
 

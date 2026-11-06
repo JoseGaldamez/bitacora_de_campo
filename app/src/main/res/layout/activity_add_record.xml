@@ -5,22 +5,31 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?attr/colorSurface"
+    android:background="?android:attr/colorBackground"
     tools:context=".views.AddRecordActivity">
 
+    <!-- App Bar elegante y minimalista -->
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:background="?attr/colorSurface"
+        app:liftOnScroll="true"
+        app:elevation="0dp">
 
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
+            android:background="?attr/colorSurface"
             app:title="Nuevo Registro"
-            app:titleTextColor="?attr/colorOnPrimary"
-            app:navigationIcon="@android:drawable/ic_menu_revert"
-            app:navigationIconTint="?attr/colorOnPrimary"
-            android:background="?attr/colorPrimary" />
+            app:titleTextColor="?attr/colorOnSurface"
+            app:navigationIcon="@drawable/ic_arrow_back"
+            app:navigationIconTint="?attr/colorOnSurface" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="?attr/colorOutlineVariant" />
 
     </com.google.android.material.appbar.AppBarLayout>
 
@@ -33,7 +42,20 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="20dp">
+            android:paddingHorizontal="20dp"
+            android:paddingTop="20dp"
+            android:paddingBottom="40dp">
+
+            <!-- Encabezado de Sección 1: Título -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="INFORMACIÓN GENERAL"
+                android:textSize="11sp"
+                android:letterSpacing="0.08"
+                android:textStyle="bold"
+                android:textColor="?attr/colorPrimary"
+                android:layout_marginBottom="8dp" />
 
             <!-- Campo de Título -->
             <com.google.android.material.textfield.TextInputLayout
@@ -41,35 +63,39 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="Título del registro *"
-                style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
+                style="@style/Widget.App.TextInputLayout">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/et_title"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="textCapSentences"
+                    android:textSize="15sp"
                     android:maxLines="1" />
 
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Seccion de Fotografia -->
+            <!-- Encabezado de Sección 2: Fotografía -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Fotografía del campo *"
-                android:textSize="14sp"
+                android:text="EVIDENCIA FOTOGRÁFICA"
+                android:textSize="11sp"
+                android:letterSpacing="0.08"
                 android:textStyle="bold"
-                android:textColor="?attr/colorOnSurface"
-                android:layout_marginTop="20dp"
+                android:textColor="?attr/colorPrimary"
+                android:layout_marginTop="24dp"
                 android:layout_marginBottom="8dp" />
 
+            <!-- Tarjeta Contenedora de Fotografía -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp"
+                app:cardCornerRadius="18dp"
+                app:cardElevation="0dp"
+                app:strokeWidth="1dp"
                 app:strokeColor="?attr/colorOutlineVariant"
-                app:strokeWidth="1dp">
+                app:cardBackgroundColor="?attr/colorSurface">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -78,94 +104,109 @@
                     android:gravity="center"
                     android:padding="16dp">
 
-                    <ImageView
+                    <com.google.android.material.imageview.ShapeableImageView
                         android:id="@+id/iv_photo_preview"
                         android:layout_width="match_parent"
-                        android:layout_height="200dp"
+                        android:layout_height="210dp"
                         android:scaleType="fitCenter"
-                        android:padding="40dp"
+                        android:padding="44dp"
                         android:src="@drawable/ic_camera_placeholder"
-                        android:background="#F5F5F5"
+                        android:background="@color/color_photo_placeholder_bg"
+                        app:shapeAppearanceOverlay="@style/ShapeAppearance.App.Medium"
                         android:contentDescription="Vista previa de foto" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btn_take_photo"
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Tomar Foto"
-                        android:layout_marginTop="12dp"
-                        app:icon="@drawable/ic_camera_placeholder"
-                        style="@style/Widget.Material3.Button.TonalButton" />
+                        android:layout_height="46dp"
+                        android:layout_marginTop="14dp"
+                        android:text="Tomar Fotografía"
+                        android:textSize="13.5sp"
+                        app:icon="@drawable/ic_camera"
+                        app:iconSize="18dp"
+                        style="@style/Widget.App.Button.TonalPill" />
 
                 </LinearLayout>
 
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Seccion de Descripción y Voz a Texto -->
+            <!-- Encabezado de Sección 3: Descripción y Dictado -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
-                android:layout_marginTop="20dp"
+                android:layout_marginTop="24dp"
                 android:layout_marginBottom="8dp">
 
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Descripción *"
-                    android:textSize="14sp"
+                    android:text="NOTAS Y OBSERVACIONES"
+                    android:textSize="11sp"
+                    android:letterSpacing="0.08"
                     android:textStyle="bold"
-                    android:textColor="?attr/colorOnSurface" />
+                    android:textColor="?attr/colorPrimary" />
 
+                <!-- Botón Voz a Texto moderno estilo pill -->
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btn_voice_to_text"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Voz a Texto"
-                    app:icon="@android:drawable/ic_btn_speak_now"
-                    style="@style/Widget.Material3.Button.OutlinedButton" />
+                    android:layout_height="38dp"
+                    android:text="Dictar"
+                    android:textSize="12.5sp"
+                    android:paddingHorizontal="14dp"
+                    app:icon="@drawable/ic_mic"
+                    app:iconSize="16dp"
+                    style="@style/Widget.App.Button.TonalPill" />
 
             </LinearLayout>
 
+            <!-- Campo de Descripción -->
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/til_description"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Ingrese o dicte la descripción..."
-                style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
+                android:hint="Ingrese o dicte sus notas de campo... *"
+                style="@style/Widget.App.TextInputLayout">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/et_description"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:minLines="4"
+                    android:minLines="5"
                     android:gravity="top|start"
-                    android:inputType="textMultiLine" />
+                    android:textSize="14.5sp"
+                    android:lineSpacingExtra="3dp"
+                    android:inputType="textMultiLine|textCapSentences" />
 
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Boton Guardar -->
+            <!-- Botón Guardar elegante y prominente -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_save_record"
                 android:layout_width="match_parent"
-                android:layout_height="56dp"
+                android:layout_height="54dp"
                 android:text="Guardar Registro"
-                android:textSize="16sp"
-                android:layout_marginTop="28dp"
-                android:layout_marginBottom="16dp"
-                app:icon="@android:drawable/ic_menu_save" />
+                android:textSize="15.5sp"
+                android:layout_marginTop="32dp"
+                app:icon="@drawable/ic_save"
+                app:iconSize="20dp"
+                app:iconGravity="textStart"
+                style="@style/Widget.App.Button.Primary" />
 
         </LinearLayout>
 
     </androidx.core.widget.NestedScrollView>
 
+    <!-- Indicador de Carga -->
     <ProgressBar
         android:id="@+id/progress_bar"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
         android:layout_gravity="center"
+        android:indeterminateTint="?attr/colorPrimary"
         android:visibility="gone" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

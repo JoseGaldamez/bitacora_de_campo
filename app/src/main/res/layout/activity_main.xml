@@ -5,23 +5,34 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?attr/colorSurface"
+    android:background="?android:attr/colorBackground"
     tools:context=".views.MainActivity">
 
+    <!-- App Bar moderna y minimalista con elevación al desplazarse -->
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:background="?attr/colorSurface"
+        app:liftOnScroll="true"
+        app:elevation="0dp">
 
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            app:title="Bitácora de Campo (API)"
-            app:titleTextColor="?attr/colorOnPrimary"
-            android:background="?attr/colorPrimary" />
+            android:background="?attr/colorSurface"
+            app:title="Bitácora de Campo"
+            app:titleCentered="false"
+            app:titleTextColor="?attr/colorOnSurface" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="?attr/colorOutlineVariant" />
 
     </com.google.android.material.appbar.AppBarLayout>
 
+    <!-- Contenido principal y lista con SwipeRefresh -->
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/swipe_refresh"
         android:layout_width="match_parent"
@@ -32,57 +43,69 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
+            <!-- Lista de registros -->
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rv_records"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:clipToPadding="false"
-                android:paddingTop="8dp"
-                android:paddingBottom="88dp"
+                android:paddingTop="10dp"
+                android:paddingBottom="96dp"
                 tools:listitem="@layout/item_record" />
 
-            <!-- ProgressBar para estado de carga -->
+            <!-- Indicador de carga sutil -->
             <ProgressBar
                 android:id="@+id/progress_bar"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
                 android:layout_gravity="center"
+                android:indeterminateTint="?attr/colorPrimary"
                 android:visibility="gone" />
 
-            <!-- Estado Vacío -->
+            <!-- Estado Vacío Elegante -->
             <LinearLayout
                 android:id="@+id/ll_empty_state"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:gravity="center"
                 android:orientation="vertical"
-                android:padding="32dp"
+                android:paddingHorizontal="40dp"
+                android:paddingVertical="32dp"
                 android:visibility="gone">
 
-                <ImageView
-                    android:layout_width="96dp"
-                    android:layout_height="96dp"
-                    android:src="@android:drawable/ic_menu_edit"
-                    app:tint="?attr/colorOutline" />
+                <FrameLayout
+                    android:layout_width="110dp"
+                    android:layout_height="110dp"
+                    android:background="@drawable/bg_empty_circle">
+
+                    <ImageView
+                        android:layout_width="54dp"
+                        android:layout_height="54dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_empty_notebook"
+                        android:contentDescription="Icono de cuaderno vacío" />
+
+                </FrameLayout>
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:text="No hay registros guardados"
+                    android:layout_marginTop="22dp"
+                    android:text="Sin registros aún"
                     android:textSize="18sp"
-                    android:textStyle="bold"
+                    android:fontFamily="sans-serif-medium"
                     android:textColor="?attr/colorOnSurface" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
-                    android:text="Presiona el botón '+' para agregar un nuevo registro."
-                    android:textSize="14sp"
+                    android:text="Presiona el botón '+' para agregar una nueva observación de campo con fotografía y notas."
+                    android:textSize="13.5sp"
+                    android:textColor="?attr/colorOnSurfaceVariant"
                     android:textAlignment="center"
-                    android:textColor="?attr/colorOutline" />
+                    android:lineSpacingExtra="3dp" />
 
             </LinearLayout>
 
@@ -94,32 +117,52 @@
                 android:layout_gravity="center"
                 android:gravity="center"
                 android:orientation="vertical"
-                android:padding="32dp"
+                android:paddingHorizontal="40dp"
+                android:paddingVertical="32dp"
                 android:visibility="gone">
 
-                <ImageView
-                    android:layout_width="72dp"
-                    android:layout_height="72dp"
-                    android:src="@android:drawable/ic_dialog_alert"
-                    app:tint="?attr/colorError" />
+                <FrameLayout
+                    android:layout_width="96dp"
+                    android:layout_height="96dp"
+                    android:background="@drawable/bg_error_circle">
+
+                    <ImageView
+                        android:layout_width="44dp"
+                        android:layout_height="44dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_wifi_off"
+                        app:tint="?attr/colorError"
+                        android:contentDescription="Icono de error" />
+
+                </FrameLayout>
 
                 <TextView
                     android:id="@+id/tv_error_message"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:text="Error al conectar con el servidor"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
+                    android:layout_marginTop="20dp"
+                    android:text="No se pudo conectar con el servidor"
+                    android:textSize="15.5sp"
+                    android:fontFamily="sans-serif-medium"
                     android:textAlignment="center"
                     android:textColor="?attr/colorOnSurface" />
 
-                <Button
-                    android:id="@+id/btn_retry"
+                <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:text="Reintentar" />
+                    android:layout_marginTop="6dp"
+                    android:text="Verifica tu conexión a internet e inténtalo nuevamente."
+                    android:textSize="13sp"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:textAlignment="center" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_retry"
+                    android:layout_width="wrap_content"
+                    android:layout_height="46dp"
+                    android:layout_marginTop="20dp"
+                    android:text="Reintentar"
+                    style="@style/Widget.App.Button.Primary" />
 
             </LinearLayout>
 
@@ -127,6 +170,7 @@
 
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
+    <!-- Botón flotante estilizado con squircle moderno -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab_add_record"
         android:layout_width="wrap_content"
@@ -134,8 +178,11 @@
         android:layout_gravity="bottom|end"
         android:layout_margin="24dp"
         android:contentDescription="Nuevo Registro"
-        android:src="@android:drawable/ic_input_add"
-        app:tint="?attr/colorOnPrimaryContainer"
-        app:backgroundTint="?attr/colorPrimaryContainer" />
+        android:src="@drawable/ic_add"
+        app:tint="?attr/colorOnPrimary"
+        app:backgroundTint="?attr/colorPrimary"
+        app:shapeAppearanceOverlay="@style/ShapeAppearance.App.Medium"
+        app:elevation="4dp"
+        app:hoveredFocusedTranslationZ="6dp" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
