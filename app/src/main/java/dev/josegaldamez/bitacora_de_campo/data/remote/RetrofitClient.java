@@ -17,7 +17,9 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class RetrofitClient {
 
-    private static final String BASE_URL = "http://10.0.2.2:5033/";
+    private static final String BASE_URL =
+            "https://api-bitacora-grupo3-337965348211.us-central1.run.app/";
+
     private static Retrofit retrofit = null;
 
     public static RegistroApi getApi() {
