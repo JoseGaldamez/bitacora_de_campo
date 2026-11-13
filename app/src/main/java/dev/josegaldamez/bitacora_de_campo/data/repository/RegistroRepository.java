@@ -3,6 +3,7 @@ package dev.josegaldamez.bitacora_de_campo.data.repository;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 
@@ -10,6 +11,7 @@ import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.util.List;
 
+import dev.josegaldamez.bitacora_de_campo.R;
 import dev.josegaldamez.bitacora_de_campo.data.remote.RegistroApi;
 import dev.josegaldamez.bitacora_de_campo.data.remote.RetrofitClient;
 import dev.josegaldamez.bitacora_de_campo.models.Record;
@@ -42,27 +44,55 @@ public class RegistroRepository {
         return true; // fallback if cm is null
     }
 
-    public void getRecords(RepositoryCallback<List<Record>> callback) {
+    public Call<List<Record>> getRecords(RepositoryCallback<List<Record>> callback) {
+        return getRecords(true, callback);
+    }
+
+    public Call<List<Record>> getRecords(boolean sendToken, RepositoryCallback<List<Record>> callback) {
+        return enqueueComparison(api.getRecords(sendToken), sendToken, true, callback);
+    }
+
+    public Call<Void> probeDelete(int id, boolean sendToken, RepositoryCallback<Void> callback) {
+        return enqueueComparison(api.deleteRecord(id, sendToken), sendToken, false, callback);
+    }
+
+    private <T> Call<T> enqueueComparison(Call<T> request, boolean sendToken,
+                                          boolean requiresBody, RepositoryCallback<T> callback) {
+        String operation = "Retrofit " + request.request().method() + " " + request.request().url().encodedPath();
         if (!isNetworkAvailable()) {
+            Log.d("RegistroRepository", operation + ": sin red antes del envío");
             callback.onError("Sin conexión a internet. Verifique su red y reintente.");
-            return;
+            return null;
         }
 
-        api.getRecords().enqueue(new Callback<List<Record>>() {
+        request.enqueue(new Callback<T>() {
             @Override
-            public void onResponse(@NonNull Call<List<Record>> call, @NonNull Response<List<Record>> response) {
-                if (response.isSuccessful() && response.body() != null) {
+            public void onResponse(@NonNull Call<T> call, @NonNull Response<T> response) {
+                if (response.isSuccessful() && (!requiresBody || response.body() != null)) {
                     callback.onSuccess(response.body());
                 } else {
-                    callback.onError(parseError(response));
+                    Log.d("RegistroRepository", operation + ": HTTP " + response.code());
+                    if (response.code() == 401 && !sendToken) {
+                        callback.onError(context.getString(R.string.comparativa_unauthenticated));
+                    } else if (response.code() == 403 && !requiresBody) {
+                        callback.onError(context.getString(R.string.comparativa_forbidden));
+                    } else if (response.code() == 404 && !requiresBody) {
+                        callback.onError(context.getString(R.string.comparativa_probe_not_found));
+                    } else {
+                        callback.onError(parseError(response));
+                    }
                 }
             }
 
             @Override
-            public void onFailure(@NonNull Call<List<Record>> call, @NonNull Throwable t) {
+            public void onFailure(@NonNull Call<T> call, @NonNull Throwable t) {
+                if (!call.isCanceled()) {
+                    Log.d("RegistroRepository", operation + ": " + t.getClass().getSimpleName());
+                }
                 callback.onError(handleFailure(t));
             }
         });
+        return request;
     }
 
     public void getRecordById(int id, RepositoryCallback<Record> callback) {
@@ -140,7 +170,7 @@ public class RegistroRepository {
             return;
         }
 
-        api.deleteRecord(id).enqueue(new Callback<Void>() {
+        api.deleteRecord(id, true).enqueue(new Callback<Void>() {
             @Override
             public void onResponse(@NonNull Call<Void> call, @NonNull Response<Void> response) {
                 if (response.isSuccessful()) {

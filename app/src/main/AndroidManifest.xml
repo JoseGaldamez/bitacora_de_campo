@@ -55,6 +55,10 @@
             android:name=".views.DetailRecordActivity"
             android:exported="false" />
 
+        <activity
+            android:name=".views.ComparativaActivity"
+            android:exported="false" />
+
     </application>
 
 </manifest>
