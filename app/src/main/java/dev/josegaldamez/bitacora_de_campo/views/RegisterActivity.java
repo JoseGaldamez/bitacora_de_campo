@@ -22,8 +22,11 @@ import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
 import dev.josegaldamez.bitacora_de_campo.R;
-import dev.josegaldamez.bitacora_de_campo.models.User;
-import dev.josegaldamez.bitacora_de_campo.services.DatabaseService;
+import dev.josegaldamez.bitacora_de_campo.data.remote.RetrofitClient;
+import dev.josegaldamez.bitacora_de_campo.models.LoginRequest;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class RegisterActivity extends AppCompatActivity {
 
@@ -41,6 +44,7 @@ public class RegisterActivity extends AppCompatActivity {
     private Button btnGoToLogin;
     private ProgressBar progressBar;
     private Toolbar toolbar;
+    private Call<Void> request;
 
 
 
@@ -182,7 +186,44 @@ public class RegisterActivity extends AppCompatActivity {
             return;
         }
 
-        Toast.makeText(this, "El servidor aún no ofrece registro de usuarios (HTTP 404). Solicita una cuenta al administrador. No se guardaron tus datos.", Toast.LENGTH_LONG).show();
+        setLoadingState(true);
+        request = RetrofitClient.getAuthApi().register(new LoginRequest(email, password));
+        request.enqueue(new Callback<Void>() {
+            @Override
+            public void onResponse(Call<Void> call, Response<Void> response) {
+                if (call.isCanceled() || isFinishing() || isDestroyed()) return;
+                setLoadingState(false);
+                if (response.isSuccessful()) {
+                    Toast.makeText(RegisterActivity.this, "Cuenta creada. Inicia sesión.", Toast.LENGTH_SHORT).show();
+                    Intent login = new Intent(RegisterActivity.this, LoginActivity.class)
+                            .putExtra(LoginActivity.EXTRA_PREFILL_EMAIL, email)
+                            .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                    startActivity(login);
+                    finish();
+                    return;
+                }
+
+                String message = response.code() == 400
+                        ? "No se pudo registrar el correo. Verifica si ya tienes una cuenta."
+                        : "No se pudo completar el registro (HTTP " + response.code() + ").";
+                Toast.makeText(RegisterActivity.this, message, Toast.LENGTH_LONG).show();
+            }
+
+            @Override
+            public void onFailure(Call<Void> call, Throwable error) {
+                if (call.isCanceled() || isFinishing() || isDestroyed()) return;
+                setLoadingState(false);
+                Toast.makeText(RegisterActivity.this,
+                        "No se pudo confirmar el registro. Comprueba tu conexión e intenta iniciar sesión.",
+                        Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (request != null) request.cancel();
+        super.onDestroy();
     }
 
     private void setLoadingState(boolean isLoading) {

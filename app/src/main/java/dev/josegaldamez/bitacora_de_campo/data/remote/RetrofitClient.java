@@ -61,7 +61,8 @@ public class RetrofitClient {
                         okhttp3.Request request = chain.request();
                         okhttp3.HttpUrl base = okhttp3.HttpUrl.get(BASE_URL);
                         boolean same = request.url().host().equals(base.host()) && request.url().scheme().equals(base.scheme()) && request.url().port() == base.port();
-                        boolean publicRequest = request.url().encodedPath().equals("/api/auth/login");
+                        String path = request.url().encodedPath();
+                        boolean publicRequest = path.equals("/api/auth/login") || path.equals("/api/auth/registro");
                         String token = session == null ? null : session.getToken();
                         if (same && !publicRequest && token == null) {
                             if (session != null) session.logout();

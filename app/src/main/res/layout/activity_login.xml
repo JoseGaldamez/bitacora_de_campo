@@ -126,17 +126,6 @@
                         android:textSize="15sp"
                         style="@style/Widget.App.Button.Primary" />
 
-                    <!-- Botón de Acceso Rápido Demo -->
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btn_quick_demo"
-                        android:layout_width="match_parent"
-                        android:layout_height="44dp"
-                        android:layout_marginTop="10dp"
-                        android:text="Autocompletar Demo (admin@uth.hn)"
-                        android:textSize="12.5sp"
-                        android:textColor="?attr/colorPrimary"
-                        style="@style/Widget.App.Button.TonalPill" />
-
                 </LinearLayout>
 
             </com.google.android.material.card.MaterialCardView>

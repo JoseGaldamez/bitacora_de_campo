@@ -34,7 +34,6 @@ public class LoginActivity extends AppCompatActivity {
     private TextInputEditText etEmail;
     private TextInputEditText etPassword;
     private Button btnLogin;
-    private Button btnQuickDemo;
     private Button btnGoToRegister;
     private ProgressBar progressBar;
 
@@ -69,7 +68,6 @@ public class LoginActivity extends AppCompatActivity {
         etEmail = findViewById(R.id.et_login_email);
         etPassword = findViewById(R.id.et_login_password);
         btnLogin = findViewById(R.id.btn_login);
-        btnQuickDemo = findViewById(R.id.btn_quick_demo);
         btnGoToRegister = findViewById(R.id.btn_go_to_register);
         progressBar = findViewById(R.id.login_progress_bar);
     }
@@ -88,8 +86,6 @@ public class LoginActivity extends AppCompatActivity {
                 tilPassword.setError(null);
             }
         });
-
-        btnQuickDemo.setOnClickListener(v -> Toast.makeText(this, "No hay una cuenta demo del servidor verificada. Usa tu cuenta real.", Toast.LENGTH_LONG).show());
 
         btnLogin.setOnClickListener(v -> attemptLogin());
 
@@ -202,7 +198,6 @@ public class LoginActivity extends AppCompatActivity {
     private void setLoadingState(boolean isLoading) {
         progressBar.setVisibility(isLoading ? View.VISIBLE : View.GONE);
         btnLogin.setEnabled(!isLoading);
-        btnQuickDemo.setEnabled(!isLoading);
         btnGoToRegister.setEnabled(!isLoading);
         etEmail.setEnabled(!isLoading);
         etPassword.setEnabled(!isLoading);

@@ -73,7 +73,7 @@ public class MainActivity extends ProtectedActivity implements RecordAdapter.OnR
         fabAddRecord = findViewById(R.id.fab_add_record);
 
         rvRecords.setLayoutManager(new LinearLayoutManager(this));
-        recordAdapter = new RecordAdapter(this);
+        recordAdapter = new RecordAdapter(this, sessionManager);
         rvRecords.setAdapter(recordAdapter);
 
         setupObservers();

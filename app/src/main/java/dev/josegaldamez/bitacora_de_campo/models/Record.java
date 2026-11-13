@@ -6,6 +6,13 @@ public class Record {
     @SerializedName("id")
     private int id;
 
+    @SerializedName("esPropio")
+    private boolean esPropio;
+
+    public boolean isPropio() {
+        return esPropio;
+    }
+
     @SerializedName("titulo")
     private String titulo;
 
