@@ -14,12 +14,14 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 
 import dev.josegaldamez.bitacora_de_campo.R;
 import dev.josegaldamez.bitacora_de_campo.controllers.RecordController;
 import dev.josegaldamez.bitacora_de_campo.models.Record;
+import dev.josegaldamez.bitacora_de_campo.utils.SessionManager;
 
 public class RecordAdapter extends RecyclerView.Adapter<RecordAdapter.RecordViewHolder> {
 
@@ -31,13 +33,16 @@ public class RecordAdapter extends RecyclerView.Adapter<RecordAdapter.RecordView
 
     private List<Record> recordList = new ArrayList<>();
     private final OnRecordClickListener listener;
+    private final SessionManager sessionManager;
 
-    public RecordAdapter(OnRecordClickListener listener) {
+    public RecordAdapter(OnRecordClickListener listener, SessionManager sessionManager) {
         this.listener = listener;
+        this.sessionManager = sessionManager;
     }
 
     public void setRecords(List<Record> records) {
-        this.recordList = records != null ? records : new ArrayList<>();
+        this.recordList = records != null ? new ArrayList<>(records) : new ArrayList<>();
+        this.recordList.sort(Comparator.comparing(Record::isPropio).reversed());
         notifyDataSetChanged();
     }
 
@@ -52,6 +57,8 @@ public class RecordAdapter extends RecyclerView.Adapter<RecordAdapter.RecordView
     public void onBindViewHolder(@NonNull RecordViewHolder holder, int position) {
         Record record = recordList.get(position);
         holder.bind(record, listener);
+        holder.btnEdit.setVisibility(record.isPropio() ? View.VISIBLE : View.GONE);
+        holder.btnDelete.setVisibility("Admin".equals(sessionManager.getRole()) ? View.VISIBLE : View.GONE);
     }
 
     @Override

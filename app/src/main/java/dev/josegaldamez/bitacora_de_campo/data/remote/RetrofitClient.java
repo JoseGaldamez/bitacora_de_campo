@@ -17,13 +17,26 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class RetrofitClient {
 
-    private static final String BASE_URL = "http://10.0.2.2:5033/";
-    private static Retrofit retrofit = null;
+    private static final String BASE_URL =
+            "https://api-bitacora-grupo3-337965348211.us-central1.run.app/";
 
-    public static RegistroApi getApi() {
+    private static Retrofit retrofit = null;
+    private static dev.josegaldamez.bitacora_de_campo.utils.SessionManager session;
+    private static boolean debug;
+    public static void initialize(android.content.Context context) {
+        session = new dev.josegaldamez.bitacora_de_campo.utils.SessionManager(context);
+        debug = (context.getApplicationInfo().flags & android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE) != 0;
+    }
+    public static AuthApi getAuthApi() {
+        getApi();
+        return retrofit.create(AuthApi.class);
+    }
+
+    public static synchronized RegistroApi getApi() {
         if (retrofit == null) {
             HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
-            loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
+            loggingInterceptor.redactHeader("Authorization");
+            loggingInterceptor.setLevel(debug ? HttpLoggingInterceptor.Level.BASIC : HttpLoggingInterceptor.Level.NONE);
 
             OkHttpClient client = new OkHttpClient.Builder()
                     .connectTimeout(15, TimeUnit.SECONDS)
@@ -41,6 +54,26 @@ public class RetrofitClient {
                             }
                             return ipv4Addresses.isEmpty() ? addresses : ipv4Addresses;
                         }
+                    })
+                    .followRedirects(false)
+                    .followSslRedirects(false)
+                    .addInterceptor(chain -> {
+                        okhttp3.Request request = chain.request();
+                        okhttp3.HttpUrl base = okhttp3.HttpUrl.get(BASE_URL);
+                        boolean same = request.url().host().equals(base.host()) && request.url().scheme().equals(base.scheme()) && request.url().port() == base.port();
+                        String path = request.url().encodedPath();
+                        boolean publicRequest = path.equals("/api/auth/login") || path.equals("/api/auth/registro");
+                        String token = session == null ? null : session.getToken();
+                        if (same && !publicRequest && token == null) {
+                            if (session != null) session.logout();
+                            return new okhttp3.Response.Builder().request(request).protocol(okhttp3.Protocol.HTTP_1_1)
+                                    .code(401).message("Unauthorized").body(okhttp3.ResponseBody.create(null, new byte[0])).build();
+                        }
+                        okhttp3.Request.Builder builder = request.newBuilder().removeHeader("Authorization");
+                        if (same && !publicRequest) builder.header("Authorization", "Bearer " + token);
+                        okhttp3.Response response = chain.proceed(builder.build());
+                        if (same && !publicRequest && response.code() == 401 && session != null) session.invalidate(token);
+                        return response;
                     })
                     .addInterceptor(loggingInterceptor)
                     .build();

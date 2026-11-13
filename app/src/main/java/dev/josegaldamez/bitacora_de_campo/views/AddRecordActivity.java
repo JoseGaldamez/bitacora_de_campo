@@ -41,7 +41,7 @@ import dev.josegaldamez.bitacora_de_campo.R;
 import dev.josegaldamez.bitacora_de_campo.models.Record;
 import dev.josegaldamez.bitacora_de_campo.viewmodel.RegistroViewModel;
 
-public class AddRecordActivity extends AppCompatActivity {
+public class AddRecordActivity extends ProtectedActivity {
 
     public static final String EXTRA_RECORD_ID = "extra_record_id";
 
@@ -95,6 +95,8 @@ public class AddRecordActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (!requireSession()) return;
+        dev.josegaldamez.bitacora_de_campo.data.remote.RetrofitClient.initialize(this);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_add_record);
 

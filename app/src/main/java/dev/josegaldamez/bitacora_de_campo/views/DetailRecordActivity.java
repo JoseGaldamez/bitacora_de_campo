@@ -26,13 +26,15 @@ import com.google.android.material.button.MaterialButton;
 import dev.josegaldamez.bitacora_de_campo.R;
 import dev.josegaldamez.bitacora_de_campo.models.Record;
 import dev.josegaldamez.bitacora_de_campo.viewmodel.RegistroViewModel;
+import dev.josegaldamez.bitacora_de_campo.utils.SessionManager;
 
-public class DetailRecordActivity extends AppCompatActivity {
+public class DetailRecordActivity extends ProtectedActivity {
 
     public static final String EXTRA_RECORD_ID = "extra_record_id";
 
     private RegistroViewModel viewModel;
     private Record currentRecord;
+    private SessionManager session;
 
     private ImageView ivPhoto;
     private TextView tvTitle;
@@ -46,6 +48,8 @@ public class DetailRecordActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (!requireSession()) return;
+        dev.josegaldamez.bitacora_de_campo.data.remote.RetrofitClient.initialize(this);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_detail_record);
 
@@ -66,6 +70,9 @@ public class DetailRecordActivity extends AppCompatActivity {
         tvDescription = findViewById(R.id.tv_detail_description);
         btnEdit = findViewById(R.id.btn_edit_detail);
         btnDelete = findViewById(R.id.btn_delete_detail);
+        btnEdit.setVisibility(View.GONE);
+        btnDelete.setVisibility(View.GONE);
+        session = new SessionManager(this);
         progressBar = findViewById(R.id.progress_bar);
 
         recordId = getIntent().getIntExtra(EXTRA_RECORD_ID, -1);
@@ -90,6 +97,7 @@ public class DetailRecordActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        if (!requireSession()) return;
         if (recordId != -1) {
             viewModel.fetchRecordById(recordId);
         }
@@ -99,6 +107,8 @@ public class DetailRecordActivity extends AppCompatActivity {
         viewModel.getRecordDetailLiveData().observe(this, record -> {
             if (record != null) {
                 currentRecord = record;
+                btnEdit.setVisibility(record.isPropio() ? View.VISIBLE : View.GONE);
+                btnDelete.setVisibility("Admin".equals(session.getRole()) ? View.VISIBLE : View.GONE);
                 tvTitle.setText(record.getTitulo());
                 tvDate.setText(record.getFecha());
                 tvDescription.setText(record.getDescripcion());
