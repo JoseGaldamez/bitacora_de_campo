@@ -42,7 +42,7 @@ public class RegisterActivity extends AppCompatActivity {
     private ProgressBar progressBar;
     private Toolbar toolbar;
 
-    private DatabaseService dbService;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,9 +56,11 @@ public class RegisterActivity extends AppCompatActivity {
             return insets;
         });
 
-        dbService = new DatabaseService(this);
+
 
         initViews();
+        etPassword.setSaveEnabled(false);
+        etConfirmPassword.setSaveEnabled(false);
         setupToolbar();
         setupListeners();
     }
@@ -123,8 +125,8 @@ public class RegisterActivity extends AppCompatActivity {
     private void attemptRegister() {
         String name = etName.getText() != null ? etName.getText().toString().trim() : "";
         String email = etEmail.getText() != null ? etEmail.getText().toString().trim() : "";
-        String password = etPassword.getText() != null ? etPassword.getText().toString().trim() : "";
-        String confirmPassword = etConfirmPassword.getText() != null ? etConfirmPassword.getText().toString().trim() : "";
+        String password = etPassword.getText() != null ? etPassword.getText().toString() : "";
+        String confirmPassword = etConfirmPassword.getText() != null ? etConfirmPassword.getText().toString() : "";
 
         boolean cancel = false;
         View focusView = null;
@@ -180,32 +182,7 @@ public class RegisterActivity extends AppCompatActivity {
             return;
         }
 
-        // Comprobar si el correo ya existe
-        setLoadingState(true);
-        if (dbService.isEmailRegistered(email)) {
-            setLoadingState(false);
-            tilEmail.setError("Este correo electrónico ya se encuentra registrado");
-            etEmail.requestFocus();
-            return;
-        }
-
-        // Crear y guardar el nuevo usuario
-        User newUser = new User(name, email, password);
-        long userId = dbService.insertUser(newUser);
-
-        setLoadingState(false);
-
-        if (userId > 0) {
-            Toast.makeText(this, "¡Cuenta creada exitosamente! Inicie sesión con sus credenciales.", Toast.LENGTH_LONG).show();
-
-            Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
-            intent.putExtra(LoginActivity.EXTRA_PREFILL_EMAIL, email);
-            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-            startActivity(intent);
-            finish();
-        } else {
-            Toast.makeText(this, "Error al guardar el usuario. Intente nuevamente.", Toast.LENGTH_SHORT).show();
-        }
+        Toast.makeText(this, "El servidor aún no ofrece registro de usuarios (HTTP 404). Solicita una cuenta al administrador. No se guardaron tus datos.", Toast.LENGTH_LONG).show();
     }
 
     private void setLoadingState(boolean isLoading) {

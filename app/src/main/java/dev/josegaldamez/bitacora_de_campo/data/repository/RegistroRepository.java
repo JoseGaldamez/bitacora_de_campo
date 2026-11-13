@@ -29,6 +29,7 @@ public class RegistroRepository {
 
     public RegistroRepository(Context context) {
         this.context = context.getApplicationContext();
+        RetrofitClient.initialize(this.context);
         this.api = RetrofitClient.getApi();
     }
 
@@ -158,17 +159,8 @@ public class RegistroRepository {
 
     private String parseError(Response<?> response) {
         int code = response.code();
-        try {
-            if (response.errorBody() != null) {
-                String errorBodyStr = response.errorBody().string();
-                if (!errorBodyStr.isEmpty()) {
-                    return "Error " + code + ": " + errorBodyStr;
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
+        if (code == 401) return "Tu sesión ha expirado. Inicia sesión nuevamente.";
+        if (code == 403) return "No tienes permisos para realizar esta operación.";
         if (code >= 400 && code < 500) {
             return "Error del cliente (" + code + "): Solicitud inválida o datos incorrectos.";
         } else if (code >= 500) {
@@ -183,6 +175,6 @@ public class RegistroRepository {
         } else if (t instanceof IOException) {
             return "Sin conexión o error de red. Verifique su conexión a internet.";
         }
-        return "Error de conexión: " + t.getLocalizedMessage();
+        return "No se pudo procesar la respuesta del servidor.";
     }
 }

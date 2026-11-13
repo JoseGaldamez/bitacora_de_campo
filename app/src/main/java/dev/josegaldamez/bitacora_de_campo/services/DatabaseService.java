@@ -57,12 +57,7 @@ public class DatabaseService extends SQLiteOpenHelper {
                 COLUMN_USER_PASSWORD + " TEXT NOT NULL)";
         db.execSQL(CREATE_USERS_TABLE);
 
-        // Usuario demo inicial para pruebas inmediatas
-        ContentValues demoUser = new ContentValues();
-        demoUser.put(COLUMN_USER_NOMBRE, "Usuario Demo");
-        demoUser.put(COLUMN_USER_EMAIL, "admin@uth.hn");
-        demoUser.put(COLUMN_USER_PASSWORD, "123456");
-        db.insertWithOnConflict(TABLE_USERS, null, demoUser, SQLiteDatabase.CONFLICT_IGNORE);
+
     }
 
     @Override
@@ -75,71 +70,6 @@ public class DatabaseService extends SQLiteOpenHelper {
     // ==========================================
     // OPERACIONES DE USUARIOS (AUTH)
     // ==========================================
-
-    public long insertUser(User user) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put(COLUMN_USER_NOMBRE, user.getNombre().trim());
-        values.put(COLUMN_USER_EMAIL, user.getEmail().trim().toLowerCase());
-        values.put(COLUMN_USER_PASSWORD, user.getPassword());
-
-        long id = db.insert(TABLE_USERS, null, values);
-        db.close();
-        return id;
-    }
-
-    public boolean isEmailRegistered(String email) {
-        if (email == null) return false;
-        SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.query(TABLE_USERS,
-                new String[]{COLUMN_USER_ID},
-                "LOWER(" + COLUMN_USER_EMAIL + ")=?",
-                new String[]{email.trim().toLowerCase()},
-                null, null, null);
-
-        boolean exists = (cursor != null && cursor.getCount() > 0);
-        if (cursor != null) cursor.close();
-        db.close();
-        return exists;
-    }
-
-    public boolean checkUserCredentials(String email, String password) {
-        if (email == null || password == null) return false;
-        SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.query(TABLE_USERS,
-                new String[]{COLUMN_USER_ID},
-                "LOWER(" + COLUMN_USER_EMAIL + ")=? AND " + COLUMN_USER_PASSWORD + "=?",
-                new String[]{email.trim().toLowerCase(), password},
-                null, null, null);
-
-        boolean valid = (cursor != null && cursor.getCount() > 0);
-        if (cursor != null) cursor.close();
-        db.close();
-        return valid;
-    }
-
-    public User getUserByEmail(String email) {
-        if (email == null) return null;
-        SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.query(TABLE_USERS,
-                new String[]{COLUMN_USER_ID, COLUMN_USER_NOMBRE, COLUMN_USER_EMAIL, COLUMN_USER_PASSWORD},
-                "LOWER(" + COLUMN_USER_EMAIL + ")=?",
-                new String[]{email.trim().toLowerCase()},
-                null, null, null);
-
-        User user = null;
-        if (cursor != null && cursor.moveToFirst()) {
-            user = new User(
-                    cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_USER_ID)),
-                    cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_USER_NOMBRE)),
-                    cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_USER_EMAIL)),
-                    cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_USER_PASSWORD))
-            );
-            cursor.close();
-        }
-        db.close();
-        return user;
-    }
 
     // ==========================================
     // OPERACIONES DE REGISTROS

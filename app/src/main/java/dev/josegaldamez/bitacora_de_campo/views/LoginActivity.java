@@ -38,7 +38,7 @@ public class LoginActivity extends AppCompatActivity {
     private Button btnGoToRegister;
     private ProgressBar progressBar;
 
-    private DatabaseService dbService;
+    private retrofit2.Call<dev.josegaldamez.bitacora_de_campo.models.LoginResponse> request;
     private SessionManager sessionManager;
 
     @Override
@@ -53,10 +53,12 @@ public class LoginActivity extends AppCompatActivity {
             return insets;
         });
 
-        dbService = new DatabaseService(this);
+        dev.josegaldamez.bitacora_de_campo.data.remote.RetrofitClient.initialize(this);
         sessionManager = new SessionManager(this);
 
         initViews();
+        etPassword.setSaveEnabled(false);
+        if (getIntent().getBooleanExtra("expired", false)) Toast.makeText(this, "Tu sesión ha expirado. Inicia sesión nuevamente.", Toast.LENGTH_LONG).show();
         setupListeners();
         handleIntentData();
     }
@@ -87,13 +89,7 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
 
-        btnQuickDemo.setOnClickListener(v -> {
-            etEmail.setText("admin@uth.hn");
-            etPassword.setText("123456");
-            tilEmail.setError(null);
-            tilPassword.setError(null);
-            Toast.makeText(this, "Credenciales de prueba cargadas", Toast.LENGTH_SHORT).show();
-        });
+        btnQuickDemo.setOnClickListener(v -> Toast.makeText(this, "No hay una cuenta demo del servidor verificada. Usa tu cuenta real.", Toast.LENGTH_LONG).show());
 
         btnLogin.setOnClickListener(v -> attemptLogin());
 
@@ -114,8 +110,9 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void attemptLogin() {
+        if (request != null) return;
         String email = etEmail.getText() != null ? etEmail.getText().toString().trim() : "";
-        String password = etPassword.getText() != null ? etPassword.getText().toString().trim() : "";
+        String password = etPassword.getText() != null ? etPassword.getText().toString() : "";
 
         boolean cancel = false;
         View focusView = null;
@@ -123,10 +120,6 @@ public class LoginActivity extends AppCompatActivity {
         // Validar contraseña
         if (TextUtils.isEmpty(password)) {
             tilPassword.setError("Ingrese su contraseña");
-            focusView = etPassword;
-            cancel = true;
-        } else if (password.length() < 6) {
-            tilPassword.setError("La contraseña debe tener al menos 6 caracteres");
             focusView = etPassword;
             cancel = true;
         }
@@ -149,30 +142,61 @@ public class LoginActivity extends AppCompatActivity {
             return;
         }
 
-        // Mostrar progreso
         setLoadingState(true);
+        request = dev.josegaldamez.bitacora_de_campo.data.remote.RetrofitClient.getAuthApi()
+                .login(new dev.josegaldamez.bitacora_de_campo.models.LoginRequest(email, password));
+        request.enqueue(new retrofit2.Callback<dev.josegaldamez.bitacora_de_campo.models.LoginResponse>() {
+            @Override public void onResponse(retrofit2.Call<dev.josegaldamez.bitacora_de_campo.models.LoginResponse> call,
+                    retrofit2.Response<dev.josegaldamez.bitacora_de_campo.models.LoginResponse> response) {
+                if (call.isCanceled() || isFinishing() || isDestroyed()) return;
+                request = null;
+                setLoadingState(false);
+                if (response.isSuccessful() && sessionManager.save(response.body())) {
+                    etPassword.setText("");
+                    openMain();
+                } else {
+                    String message = response.isSuccessful() ? "El servidor devolvió una sesión inválida."
+                            : response.code() == 400 || response.code() == 401 ? "Correo o contraseña incorrectos."
+                            : response.code() == 403 ? "No tienes permisos para acceder."
+                            : response.code() == 404 ? "El servidor no tiene disponible el inicio de sesión."
+                            : response.code() == 429 ? "Demasiados intentos. Espera antes de volver a intentar."
+                            : "Ocurrió un problema al iniciar sesión. Inténtalo nuevamente.";
+                    Toast.makeText(LoginActivity.this, message, Toast.LENGTH_LONG).show();
+                    if (response.errorBody() != null) response.errorBody().close();
+                }
+            }
+            @Override public void onFailure(retrofit2.Call<dev.josegaldamez.bitacora_de_campo.models.LoginResponse> call, Throwable error) {
+                if (call.isCanceled() || isFinishing() || isDestroyed()) return;
+                request = null;
+                setLoadingState(false);
+                Toast.makeText(LoginActivity.this, error instanceof java.net.SocketTimeoutException
+                        ? "El servidor tardó demasiado. Inténtalo nuevamente."
+                        : error instanceof java.io.IOException ? "No se pudo conectar con el servidor. Revisa tu conexión."
+                        : "La respuesta del servidor no es válida.", Toast.LENGTH_LONG).show();
+            }
+        });
+    }
 
-        // Validar en base de datos local SQLite
-        boolean isValid = dbService.checkUserCredentials(email, password);
+    private void openMain() {
+        startActivity(new Intent(this, MainActivity.class)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK));
+        finish();
+    }
 
-        setLoadingState(false);
+    @Override protected void onResume() {
+        super.onResume();
+        if (sessionManager != null && sessionManager.isLoggedIn()) openMain();
+    }
 
-        if (isValid) {
-            User user = dbService.getUserByEmail(email);
-            String displayName = (user != null && user.getNombre() != null) ? user.getNombre() : "Usuario";
+    @Override protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        handleIntentData();
+    }
 
-            sessionManager.createLoginSession(email, displayName);
-
-            Toast.makeText(this, "¡Bienvenido, " + displayName + "!", Toast.LENGTH_SHORT).show();
-
-            Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-            startActivity(intent);
-            finish();
-        } else {
-            tilPassword.setError("Correo o contraseña incorrectos");
-            Toast.makeText(this, "Credenciales incorrectas. Verifique sus datos o regístrese.", Toast.LENGTH_LONG).show();
-            etPassword.requestFocus();
-        }
+    @Override protected void onDestroy() {
+        if (request != null) request.cancel();
+        super.onDestroy();
     }
 
     private void setLoadingState(boolean isLoading) {

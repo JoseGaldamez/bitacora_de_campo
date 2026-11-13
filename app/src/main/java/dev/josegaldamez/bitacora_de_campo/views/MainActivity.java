@@ -30,7 +30,7 @@ import dev.josegaldamez.bitacora_de_campo.models.Record;
 import dev.josegaldamez.bitacora_de_campo.utils.SessionManager;
 import dev.josegaldamez.bitacora_de_campo.viewmodel.RegistroViewModel;
 
-public class MainActivity extends AppCompatActivity implements RecordAdapter.OnRecordClickListener {
+public class MainActivity extends ProtectedActivity implements RecordAdapter.OnRecordClickListener {
 
     private RegistroViewModel viewModel;
     private RecordAdapter recordAdapter;
@@ -47,6 +47,8 @@ public class MainActivity extends AppCompatActivity implements RecordAdapter.OnR
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (!requireSession()) return;
+        dev.josegaldamez.bitacora_de_campo.data.remote.RetrofitClient.initialize(this);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
 
@@ -126,6 +128,7 @@ public class MainActivity extends AppCompatActivity implements RecordAdapter.OnR
     @Override
     protected void onResume() {
         super.onResume();
+        if (!requireSession()) return;
         viewModel.fetchRecords();
     }
 
