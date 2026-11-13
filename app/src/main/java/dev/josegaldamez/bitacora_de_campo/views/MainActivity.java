@@ -20,18 +20,21 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.List;
 
 import dev.josegaldamez.bitacora_de_campo.R;
 import dev.josegaldamez.bitacora_de_campo.models.Record;
+import dev.josegaldamez.bitacora_de_campo.utils.SessionManager;
 import dev.josegaldamez.bitacora_de_campo.viewmodel.RegistroViewModel;
 
 public class MainActivity extends AppCompatActivity implements RecordAdapter.OnRecordClickListener {
 
     private RegistroViewModel viewModel;
     private RecordAdapter recordAdapter;
+    private SessionManager sessionManager;
 
     private RecyclerView rvRecords;
     private SwipeRefreshLayout swipeRefresh;
@@ -53,7 +56,10 @@ public class MainActivity extends AppCompatActivity implements RecordAdapter.OnR
             return insets;
         });
 
+        sessionManager = new SessionManager(this);
         viewModel = new ViewModelProvider(this).get(RegistroViewModel.class);
+
+        setupToolbar();
 
         rvRecords = findViewById(R.id.rv_records);
         swipeRefresh = findViewById(R.id.swipe_refresh);
@@ -81,6 +87,40 @@ public class MainActivity extends AppCompatActivity implements RecordAdapter.OnR
             Intent intent = new Intent(MainActivity.this, AddRecordActivity.class);
             startActivity(intent);
         });
+    }
+
+    private void setupToolbar() {
+        MaterialToolbar toolbar = findViewById(R.id.toolbar);
+        if (toolbar != null) {
+            if (sessionManager.isLoggedIn() && !sessionManager.getUserName().isEmpty()) {
+                toolbar.setSubtitle("Usuario: " + sessionManager.getUserName());
+            }
+
+            toolbar.inflateMenu(R.menu.main_menu);
+            toolbar.setOnMenuItemClickListener(item -> {
+                if (item.getItemId() == R.id.action_logout) {
+                    showLogoutDialog();
+                    return true;
+                }
+                return false;
+            });
+        }
+    }
+
+    private void showLogoutDialog() {
+        new AlertDialog.Builder(this)
+                .setTitle("Cerrar Sesión")
+                .setMessage("¿Deseas salir y regresar a la pantalla de inicio de sesión?")
+                .setPositiveButton("Cerrar Sesión", (dialog, which) -> {
+                    sessionManager.logout();
+                    Toast.makeText(this, "Sesión cerrada correctamente", Toast.LENGTH_SHORT).show();
+                    Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    startActivity(intent);
+                    finish();
+                })
+                .setNegativeButton("Cancelar", null)
+                .show();
     }
 
     @Override

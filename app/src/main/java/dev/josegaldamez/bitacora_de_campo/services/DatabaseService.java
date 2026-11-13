@@ -10,12 +10,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 import dev.josegaldamez.bitacora_de_campo.models.Record;
+import dev.josegaldamez.bitacora_de_campo.models.User;
 
 public class DatabaseService extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "bitacora_campo.db";
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 2;
 
+    // Tabla Registros
     public static final String TABLE_NAME = "registros";
     public static final String COLUMN_ID = "id";
     public static final String COLUMN_TITULO = "titulo";
@@ -23,26 +25,125 @@ public class DatabaseService extends SQLiteOpenHelper {
     public static final String COLUMN_FOTOGRAFIA_BASE64 = "fotografia_base64";
     public static final String COLUMN_FECHA = "fecha";
 
+    // Tabla Usuarios
+    public static final String TABLE_USERS = "usuarios";
+    public static final String COLUMN_USER_ID = "id";
+    public static final String COLUMN_USER_NOMBRE = "nombre";
+    public static final String COLUMN_USER_EMAIL = "email";
+    public static final String COLUMN_USER_PASSWORD = "password";
+
     public DatabaseService(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        String CREATE_TABLE = "CREATE TABLE " + TABLE_NAME + " (" +
+        String CREATE_REGISTROS_TABLE = "CREATE TABLE " + TABLE_NAME + " (" +
                 COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 COLUMN_TITULO + " TEXT, " +
                 COLUMN_DESCRIPCION + " TEXT, " +
                 COLUMN_FOTOGRAFIA_BASE64 + " TEXT, " +
                 COLUMN_FECHA + " TEXT)";
-        db.execSQL(CREATE_TABLE);
+        db.execSQL(CREATE_REGISTROS_TABLE);
+
+        createUsersTable(db);
+    }
+
+    private void createUsersTable(SQLiteDatabase db) {
+        String CREATE_USERS_TABLE = "CREATE TABLE IF NOT EXISTS " + TABLE_USERS + " (" +
+                COLUMN_USER_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                COLUMN_USER_NOMBRE + " TEXT NOT NULL, " +
+                COLUMN_USER_EMAIL + " TEXT UNIQUE NOT NULL, " +
+                COLUMN_USER_PASSWORD + " TEXT NOT NULL)";
+        db.execSQL(CREATE_USERS_TABLE);
+
+        // Usuario demo inicial para pruebas inmediatas
+        ContentValues demoUser = new ContentValues();
+        demoUser.put(COLUMN_USER_NOMBRE, "Usuario Demo");
+        demoUser.put(COLUMN_USER_EMAIL, "admin@uth.hn");
+        demoUser.put(COLUMN_USER_PASSWORD, "123456");
+        db.insertWithOnConflict(TABLE_USERS, null, demoUser, SQLiteDatabase.CONFLICT_IGNORE);
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_NAME);
-        onCreate(db);
+        if (oldVersion < 2) {
+            createUsersTable(db);
+        }
     }
+
+    // ==========================================
+    // OPERACIONES DE USUARIOS (AUTH)
+    // ==========================================
+
+    public long insertUser(User user) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_USER_NOMBRE, user.getNombre().trim());
+        values.put(COLUMN_USER_EMAIL, user.getEmail().trim().toLowerCase());
+        values.put(COLUMN_USER_PASSWORD, user.getPassword());
+
+        long id = db.insert(TABLE_USERS, null, values);
+        db.close();
+        return id;
+    }
+
+    public boolean isEmailRegistered(String email) {
+        if (email == null) return false;
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(TABLE_USERS,
+                new String[]{COLUMN_USER_ID},
+                "LOWER(" + COLUMN_USER_EMAIL + ")=?",
+                new String[]{email.trim().toLowerCase()},
+                null, null, null);
+
+        boolean exists = (cursor != null && cursor.getCount() > 0);
+        if (cursor != null) cursor.close();
+        db.close();
+        return exists;
+    }
+
+    public boolean checkUserCredentials(String email, String password) {
+        if (email == null || password == null) return false;
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(TABLE_USERS,
+                new String[]{COLUMN_USER_ID},
+                "LOWER(" + COLUMN_USER_EMAIL + ")=? AND " + COLUMN_USER_PASSWORD + "=?",
+                new String[]{email.trim().toLowerCase(), password},
+                null, null, null);
+
+        boolean valid = (cursor != null && cursor.getCount() > 0);
+        if (cursor != null) cursor.close();
+        db.close();
+        return valid;
+    }
+
+    public User getUserByEmail(String email) {
+        if (email == null) return null;
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(TABLE_USERS,
+                new String[]{COLUMN_USER_ID, COLUMN_USER_NOMBRE, COLUMN_USER_EMAIL, COLUMN_USER_PASSWORD},
+                "LOWER(" + COLUMN_USER_EMAIL + ")=?",
+                new String[]{email.trim().toLowerCase()},
+                null, null, null);
+
+        User user = null;
+        if (cursor != null && cursor.moveToFirst()) {
+            user = new User(
+                    cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_USER_ID)),
+                    cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_USER_NOMBRE)),
+                    cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_USER_EMAIL)),
+                    cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_USER_PASSWORD))
+            );
+            cursor.close();
+        }
+        db.close();
+        return user;
+    }
+
+    // ==========================================
+    // OPERACIONES DE REGISTROS
+    // ==========================================
 
     public long insertRecord(Record record) {
         SQLiteDatabase db = this.getWritableDatabase();
