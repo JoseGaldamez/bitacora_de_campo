@@ -15,9 +15,13 @@ import retrofit2.http.Tag;
 public interface RegistroApi {
 
     String LIST_PATH = "api/registros";
+    String TIMEOUT_PATH = LIST_PATH + "/prueba-timeout";
 
     @GET(LIST_PATH)
     Call<List<Record>> getRecords(@Tag Boolean sendToken);
+
+    @GET(TIMEOUT_PATH)
+    Call<List<Record>> probeTimeout();
 
     @GET("api/registros/{id}")
     Call<Record> getRecordById(@Path("id") int id);

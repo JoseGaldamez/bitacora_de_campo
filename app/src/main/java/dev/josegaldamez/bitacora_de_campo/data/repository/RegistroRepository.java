@@ -56,6 +56,10 @@ public class RegistroRepository {
         return enqueueComparison(api.deleteRecord(id, sendToken), sendToken, false, callback);
     }
 
+    public Call<List<Record>> probeTimeout(RepositoryCallback<List<Record>> callback) {
+        return enqueueComparison(api.probeTimeout(), true, true, callback);
+    }
+
     private <T> Call<T> enqueueComparison(Call<T> request, boolean sendToken,
                                           boolean requiresBody, RepositoryCallback<T> callback) {
         String operation = "Retrofit " + request.request().method() + " " + request.request().url().encodedPath();

@@ -25,6 +25,10 @@ public class RetrofitClient {
         return BASE_URL + RegistroApi.LIST_PATH;
     }
 
+    public static String getTimeoutProbeUrl() {
+        return BASE_URL + RegistroApi.TIMEOUT_PATH;
+    }
+
     private static Retrofit retrofit = null;
     private static dev.josegaldamez.bitacora_de_campo.utils.SessionManager session;
     private static boolean debug;

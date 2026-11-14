@@ -71,6 +71,7 @@ public class ComparativaActivity extends ProtectedActivity {
     private retrofit2.Call<?> retrofitCall;
     private MaterialSwitch sendTokenSwitch;
     private MaterialSwitch deleteProbeSwitch;
+    private MaterialButton timeoutButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -100,22 +101,32 @@ public class ComparativaActivity extends ProtectedActivity {
         ResultCard volley = new ResultCard(R.id.run_volley, R.id.result_volley);
         ResultCard okHttpResult = new ResultCard(R.id.run_okhttp, R.id.result_okhttp);
         ResultCard retrofit = new ResultCard(R.id.run_retrofit, R.id.result_retrofit);
-        volley.button.setOnClickListener(view -> queryVolley(volley));
-        okHttpResult.button.setOnClickListener(view -> queryOkHttp(okHttpResult));
-        retrofit.button.setOnClickListener(view -> queryRetrofit(retrofit));
+        timeoutButton = findViewById(R.id.run_timeout);
+        volley.button.setOnClickListener(view -> queryVolley(volley, false));
+        okHttpResult.button.setOnClickListener(view -> queryOkHttp(okHttpResult, false));
+        retrofit.button.setOnClickListener(view -> queryRetrofit(retrofit, false));
+        timeoutButton.setOnClickListener(view -> {
+            if (!requireSession()) return;
+            queryVolley(volley, true);
+            queryOkHttp(okHttpResult, true);
+            queryRetrofit(retrofit, true);
+        });
     }
 
-    private void queryVolley(ResultCard result) {
+    private void queryVolley(ResultCard result, boolean timeoutProbe) {
         if (!requireSession()) return;
-        String token = sendTokenSwitch.isChecked() ? session.getToken() : null;
-        boolean delete = deleteProbeSwitch.isChecked();
+        String token = (timeoutProbe || sendTokenSwitch.isChecked()) ? session.getToken() : null;
+        boolean delete = !timeoutProbe && deleteProbeSwitch.isChecked();
         long started = result.start();
-        String url = requestUrl(delete);
+        String url = requestUrl(delete, timeoutProbe);
         Map<String, String> headers = token == null ? Collections.emptyMap()
                 : Collections.singletonMap("Authorization", "Bearer " + token);
         ErrorListener onError = error -> {
             int status = error.networkResponse == null ? 0 : error.networkResponse.statusCode;
-            Log.d(TAG, "Volley " + (delete ? "DELETE" : "GET") + ": " + error.getClass().getSimpleName()
+            String operation = timeoutProbe ? getString(R.string.comparativa_timeout_endpoint)
+                    : (delete ? "DELETE" : "GET");
+            Log.d(TAG, "Volley " + operation
+                    + ": " + error.getClass().getSimpleName()
                     + (status == 0 ? "" : " (HTTP " + status + ")"));
             if (error instanceof TimeoutError) {
                 result.error(getString(R.string.comparativa_timeout));
@@ -139,7 +150,7 @@ public class ComparativaActivity extends ProtectedActivity {
             };
         } else {
             request = new JsonArrayRequest(url,
-                    records -> result.success(records.length(), SystemClock.elapsedRealtime() - started), onError) {
+                    records -> result.listResponse(records.length(), started, timeoutProbe), onError) {
                 @Override
                 public Map<String, String> getHeaders() {
                     return headers;
@@ -153,12 +164,12 @@ public class ComparativaActivity extends ProtectedActivity {
         volleyQueue.add(request);
     }
 
-    private void queryOkHttp(ResultCard result) {
+    private void queryOkHttp(ResultCard result, boolean timeoutProbe) {
         if (!requireSession()) return;
-        String token = sendTokenSwitch.isChecked() ? session.getToken() : null;
-        boolean delete = deleteProbeSwitch.isChecked();
+        String token = (timeoutProbe || sendTokenSwitch.isChecked()) ? session.getToken() : null;
+        boolean delete = !timeoutProbe && deleteProbeSwitch.isChecked();
         long started = result.start();
-        Request.Builder builder = new Request.Builder().url(requestUrl(delete));
+        Request.Builder builder = new Request.Builder().url(requestUrl(delete, timeoutProbe));
         if (delete) builder.delete();
         if (token != null) builder.header("Authorization", "Bearer " + token);
         Request request = builder.build();
@@ -168,7 +179,8 @@ public class ComparativaActivity extends ProtectedActivity {
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException error) {
                 if (call.isCanceled()) return;
-                Log.d(TAG, "OkHttp: " + error.getClass().getSimpleName());
+                Log.d(TAG, "OkHttp " + request.method() + " " + request.url().encodedPath()
+                        + ": " + error.getClass().getSimpleName());
                 String message = error instanceof SocketTimeoutException
                         ? getString(R.string.comparativa_timeout) : networkErrorMessage();
                 runOnUiThread(() -> result.error(message));
@@ -195,7 +207,7 @@ public class ComparativaActivity extends ProtectedActivity {
                         throw new JsonParseException("Se esperaba un arreglo de registros");
                     }
                     long elapsed = SystemClock.elapsedRealtime() - started;
-                    runOnUiThread(() -> result.success(records.size(), elapsed));
+                    runOnUiThread(() -> result.listResult(records.size(), elapsed, timeoutProbe));
                 } catch (IOException error) {
                     onFailure(call, error);
                 } catch (JsonParseException error) {
@@ -206,11 +218,11 @@ public class ComparativaActivity extends ProtectedActivity {
         });
     }
 
-    private void queryRetrofit(ResultCard result) {
+    private void queryRetrofit(ResultCard result, boolean timeoutProbe) {
         if (!requireSession()) return;
         boolean sendToken = sendTokenSwitch.isChecked();
         long started = result.start();
-        if (deleteProbeSwitch.isChecked()) {
+        if (!timeoutProbe && deleteProbeSwitch.isChecked()) {
             retrofitCall = repository.probeDelete(DELETE_PROBE_ID, sendToken,
                     new RegistroRepository.RepositoryCallback<Void>() {
                         @Override
@@ -225,22 +237,30 @@ public class ComparativaActivity extends ProtectedActivity {
                     });
             return;
         }
-        retrofitCall = repository.getRecords(sendToken, new RegistroRepository.RepositoryCallback<List<Record>>() {
+        RegistroRepository.RepositoryCallback<List<Record>> callback = new RegistroRepository.RepositoryCallback<List<Record>>() {
             @Override
             public void onSuccess(List<Record> records) {
-                result.success(records.size(), SystemClock.elapsedRealtime() - started);
+                result.listResponse(records.size(), started, timeoutProbe);
             }
 
             @Override
             public void onError(String message) {
                 result.error(message);
             }
-        });
+        };
+        retrofitCall = timeoutProbe ? repository.probeTimeout(callback) : repository.getRecords(sendToken, callback);
     }
 
-    private String requestUrl(boolean delete) {
+    private String requestUrl(boolean delete, boolean timeoutProbe) {
+        if (timeoutProbe) return RetrofitClient.getTimeoutProbeUrl();
         String recordsUrl = RetrofitClient.getRecordsUrl();
         return delete ? recordsUrl + "/" + DELETE_PROBE_ID : recordsUrl;
+    }
+
+    private void updateTimeoutButton() {
+        timeoutButton.setEnabled(findViewById(R.id.run_volley).isEnabled()
+                && findViewById(R.id.run_okhttp).isEnabled()
+                && findViewById(R.id.run_retrofit).isEnabled());
     }
 
     private void showHttpError(ResultCard result, int status, String token, boolean delete) {
@@ -301,12 +321,18 @@ public class ComparativaActivity extends ProtectedActivity {
         long start() {
             render(getString(R.string.comparativa_loading), "", false);
             button.setEnabled(false);
+            updateTimeoutButton();
             return SystemClock.elapsedRealtime();
         }
 
-        void success(int count, long elapsed) {
-            render(getResources().getQuantityString(R.plurals.comparativa_records, count, count),
-                    getString(R.string.comparativa_elapsed, elapsed), false);
+        void listResponse(int count, long started, boolean timeoutProbe) {
+            listResult(count, SystemClock.elapsedRealtime() - started, timeoutProbe);
+        }
+
+        void listResult(int count, long elapsed, boolean timeoutProbe) {
+            String message = timeoutProbe ? getString(R.string.comparativa_timeout_responded)
+                    : getResources().getQuantityString(R.plurals.comparativa_records, count, count);
+            render(message, getString(R.string.comparativa_elapsed, elapsed), false);
         }
 
         void error(String message) {
@@ -336,6 +362,7 @@ public class ComparativaActivity extends ProtectedActivity {
                     ? com.google.android.material.R.attr.colorOnErrorContainer
                     : com.google.android.material.R.attr.colorOnSurface));
             button.setEnabled(true);
+            updateTimeoutButton();
         }
     }
 }

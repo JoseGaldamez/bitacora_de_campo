@@ -112,6 +112,15 @@
                     android:text="@string/comparativa_retrofit" />
             </LinearLayout>
 
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/run_timeout"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:minHeight="48dp"
+                android:text="@string/comparativa_try_timeout" />
+
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

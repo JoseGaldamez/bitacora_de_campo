@@ -2,6 +2,7 @@
     <string name="app_name">Bitácora de Campo</string>
     <string name="appbar_scrolling_view_behavior">com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior</string>
     <string name="comparativa_title">Comparativa</string>
+    <string name="comparativa_menu_title">Comparativa José Galdámez</string>
     <string name="comparativa_back">Volver a la bitácora</string>
     <string name="comparativa_endpoint" translatable="false">GET /api/registros</string>
     <string name="comparativa_delete_endpoint" translatable="false">DELETE /api/registros/%1$d</string>
@@ -19,6 +20,9 @@
     <string name="comparativa_offline">Sin conexión a internet.</string>
     <string name="comparativa_unreachable">No se pudo conectar con la API.</string>
     <string name="comparativa_timeout">Tiempo de espera agotado.</string>
+    <string name="comparativa_try_timeout">Probar timeout</string>
+    <string name="comparativa_timeout_endpoint" translatable="false">GET /api/registros/prueba-timeout</string>
+    <string name="comparativa_timeout_responded">La API respondió antes del límite.</string>
     <string name="comparativa_session_expired">Tu sesión ha expirado. Inicia sesión nuevamente.</string>
     <string name="comparativa_unauthenticated">HTTP 401 · La petición se envió sin token.</string>
     <string name="comparativa_forbidden">HTTP 403 · Solo un administrador puede borrar registros.</string>

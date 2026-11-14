@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
         android:id="@+id/action_comparativa"
-        android:title="@string/comparativa_title"
+        android:title="@string/comparativa_menu_title"
         app:showAsAction="never" />
     <item
         android:id="@+id/action_logout"
