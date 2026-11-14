@@ -10,11 +10,18 @@ import retrofit2.http.GET;
 import retrofit2.http.POST;
 import retrofit2.http.PUT;
 import retrofit2.http.Path;
+import retrofit2.http.Tag;
 
 public interface RegistroApi {
 
-    @GET("api/registros")
-    Call<List<Record>> getRecords();
+    String LIST_PATH = "api/registros";
+    String TIMEOUT_PATH = LIST_PATH + "/prueba-timeout";
+
+    @GET(LIST_PATH)
+    Call<List<Record>> getRecords(@Tag Boolean sendToken);
+
+    @GET(TIMEOUT_PATH)
+    Call<List<Record>> probeTimeout();
 
     @GET("api/registros/{id}")
     Call<Record> getRecordById(@Path("id") int id);
@@ -25,6 +32,6 @@ public interface RegistroApi {
     @PUT("api/registros/{id}")
     Call<Record> updateRecord(@Path("id") int id, @Body Record record);
 
-    @DELETE("api/registros/{id}")
-    Call<Void> deleteRecord(@Path("id") int id);
+    @DELETE(LIST_PATH + "/{id}")
+    Call<Void> deleteRecord(@Path("id") int id, @Tag Boolean sendToken);
 }

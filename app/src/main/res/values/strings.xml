@@ -1,4 +1,42 @@
 <resources>
     <string name="app_name">Bitácora de Campo</string>
     <string name="appbar_scrolling_view_behavior">com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior</string>
+
+    <!-- Tarea 2.5 - Laboratorio HTTP (Linda Nolasco) -->
+    <string name="laboratorio_title">Laboratorio HTTP</string>
+    <string name="laboratorio_menu_title">Laboratorio HTTP (Linda Nolasco)</string>
+    <string name="laboratorio_subtitle">Comparativa Volley · OkHttp · Retrofit</string>
+    <string name="comparativa_back">Volver a la bitácora</string>
+    <string name="comparativa_endpoint" translatable="false">GET /api/registros</string>
+    <string name="comparativa_delete_endpoint" translatable="false">DELETE /api/registros/%1$d</string>
+    <string name="comparativa_timeout_endpoint" translatable="false">GET /api/registros/prueba-timeout</string>
+    <string name="comparativa_instruction">Selecciona un cliente para ejecutar la petición hacia la API:</string>
+    <string name="comparativa_send_token">Incluir JWT en Authorization</string>
+    <string name="comparativa_delete_probe">Probar DELETE id:0 (HTTP 403)</string>
+    <string name="comparativa_volley" translatable="false">Volley</string>
+    <string name="comparativa_okhttp" translatable="false">OkHttp</string>
+    <string name="comparativa_retrofit" translatable="false">Retrofit</string>
+    <string name="comparativa_results">Resultados del Laboratorio</string>
+    <string name="comparativa_waiting">Listo para consultar</string>
+    <string name="comparativa_loading">Consultando servidor…</string>
+    <string name="comparativa_elapsed">%1$d ms</string>
+    <string name="comparativa_error">Error</string>
+    <string name="comparativa_offline">Sin conexión a internet. Verifique su red.</string>
+    <string name="comparativa_unreachable">No se pudo conectar con la API (Servidor no disponible o caído).</string>
+    <string name="comparativa_timeout">Tiempo de espera agotado (Timeout > 15s).</string>
+    <string name="comparativa_try_timeout">Probar Timeout en los 3 clientes</string>
+    <string name="comparativa_timeout_responded">La API respondió antes del tiempo límite.</string>
+    <string name="comparativa_session_expired">Tu sesión ha expirado. Inicia sesión nuevamente.</string>
+    <string name="comparativa_unauthenticated">HTTP 401 · Solicitud no autorizada (JWT ausente/omitido).</string>
+    <string name="comparativa_forbidden">HTTP 403 · Acceso denegado (Requiere rol Admin).</string>
+    <string name="comparativa_probe_not_found">HTTP 404 · Registro no encontrado en la API.</string>
+    <string name="comparativa_delete_success">HTTP 200 · Borrado completado con éxito.</string>
+    <string name="comparativa_server_error">HTTP %1$d · Error interno del servidor backend.</string>
+    <string name="comparativa_http_error">HTTP %1$d · Respuesta de la API.</string>
+    <string name="comparativa_invalid_response">Error de parseo JSON / datos inválidos.</string>
+
+    <plurals name="comparativa_records">
+        <item quantity="one">%1$d registro recibido</item>
+        <item quantity="other">%1$d registros recibidos</item>
+    </plurals>
 </resources>

@@ -100,6 +100,10 @@ public class MainActivity extends ProtectedActivity implements RecordAdapter.OnR
 
             toolbar.inflateMenu(R.menu.main_menu);
             toolbar.setOnMenuItemClickListener(item -> {
+                if (item.getItemId() == R.id.action_laboratorio) {
+                    startActivity(new Intent(this, LaboratorioActivity.class));
+                    return true;
+                }
                 if (item.getItemId() == R.id.action_logout) {
                     showLogoutDialog();
                     return true;

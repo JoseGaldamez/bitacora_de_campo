@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/laboratorio_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?android:attr/colorBackground"
+    android:orientation="vertical">
+
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/laboratorio_toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="?attr/actionBarSize"
+        android:background="?attr/colorSurface"
+        app:navigationContentDescription="@string/comparativa_back"
+        app:navigationIcon="@drawable/ic_arrow_back"
+        app:title="@string/laboratorio_title"
+        app:titleTextColor="?attr/colorOnSurface"
+        app:subtitle="@string/laboratorio_subtitle"
+        app:subtitleTextColor="?attr/colorOnSurfaceVariant" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="?attr/colorOutlineVariant" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <!-- Card de Configuración de Petición -->
+            <com.google.android.material.card.MaterialCardView
+                style="@style/Widget.App.CardView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="18dp"
+                app:cardElevation="0dp"
+                app:strokeWidth="1dp"
+                app:strokeColor="?attr/colorOutlineVariant"
+                app:cardBackgroundColor="?attr/colorSurface">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Parámetros de la Petición"
+                        android:textSize="15sp"
+                        android:fontFamily="sans-serif-medium"
+                        android:textColor="?attr/colorPrimary" />
+
+                    <!-- Endpoint Badge -->
+                    <TextView
+                        android:id="@+id/tv_endpoint"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:background="@drawable/bg_badge_date"
+                        android:fontFamily="monospace"
+                        android:paddingHorizontal="10dp"
+                        android:paddingVertical="6dp"
+                        android:text="@string/comparativa_endpoint"
+                        android:textColor="?attr/colorPrimary"
+                        android:textSize="13sp" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:text="@string/comparativa_instruction"
+                        android:textColor="?attr/colorOnSurfaceVariant"
+                        android:textSize="13sp" />
+
+                    <!-- Switch Enviar Token (JWT) -->
+                    <com.google.android.material.materialswitch.MaterialSwitch
+                        android:id="@+id/switch_send_token"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:checked="true"
+                        android:minHeight="48dp"
+                        android:text="@string/comparativa_send_token"
+                        android:textSize="14sp" />
+
+                    <!-- Switch DELETE id:0 (HTTP 403) -->
+                    <com.google.android.material.materialswitch.MaterialSwitch
+                        android:id="@+id/switch_delete_probe"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:minHeight="48dp"
+                        android:text="@string/comparativa_delete_probe"
+                        android:textSize="14sp" />
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Botones de Acción de Clientes -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:layout_marginBottom="8dp"
+                android:text="Ejecutar Consulta por Cliente"
+                android:textSize="16sp"
+                android:fontFamily="sans-serif-medium"
+                android:textColor="?attr/colorOnSurface" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_run_volley"
+                    style="@style/Widget.Material3.Button"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:minWidth="0dp"
+                    android:minHeight="48dp"
+                    android:paddingHorizontal="4dp"
+                    android:text="@string/comparativa_volley" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_run_okhttp"
+                    style="@style/Widget.Material3.Button"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_weight="1"
+                    android:minWidth="0dp"
+                    android:minHeight="48dp"
+                    android:paddingHorizontal="4dp"
+                    android:text="@string/comparativa_okhttp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_run_retrofit"
+                    style="@style/Widget.Material3.Button"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_weight="1"
+                    android:minWidth="0dp"
+                    android:minHeight="48dp"
+                    android:paddingHorizontal="4dp"
+                    android:text="@string/comparativa_retrofit" />
+            </LinearLayout>
+
+            <!-- Botón Timeout -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_run_timeout"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:minHeight="48dp"
+                android:text="@string/comparativa_try_timeout" />
+
+            <!-- Sección de Resultados -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:layout_marginBottom="8dp"
+                android:accessibilityHeading="true"
+                android:text="@string/comparativa_results"
+                android:textColor="?attr/colorPrimary"
+                android:textSize="18sp"
+                android:fontFamily="sans-serif-medium"
+                android:textStyle="bold" />
+
+            <include
+                android:id="@+id/card_result_volley"
+                layout="@layout/laboratorio_result_card"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp" />
+
+            <include
+                android:id="@+id/card_result_okhttp"
+                layout="@layout/laboratorio_result_card"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp" />
+
+            <include
+                android:id="@+id/card_result_retrofit"
+                layout="@layout/laboratorio_result_card"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="24dp" />
+
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

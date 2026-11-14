@@ -40,10 +40,13 @@ dependencies {
     implementation("androidx.recyclerview:recyclerview:1.3.2")
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
 
-    // Retrofit & Gson
+    // HTTP clients and JSON conversion
     implementation("com.squareup.retrofit2:retrofit:2.11.0")
     implementation("com.squareup.retrofit2:converter-gson:2.11.0")
+    implementation("com.google.code.gson:gson:2.10.1")
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
+    implementation("com.android.volley:volley:1.2.1")
 
     // Lifecycle (ViewModel & LiveData)
     implementation("androidx.lifecycle:lifecycle-viewmodel:2.8.7")

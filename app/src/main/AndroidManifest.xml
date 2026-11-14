@@ -55,6 +55,11 @@
             android:name=".views.DetailRecordActivity"
             android:exported="false" />
 
+        <!-- Pantalla de laboratorio HTTP (Tarea 2.5 - Linda Nolasco) -->
+        <activity
+            android:name=".views.LaboratorioActivity"
+            android:exported="false" />
+
     </application>
 
 </manifest>

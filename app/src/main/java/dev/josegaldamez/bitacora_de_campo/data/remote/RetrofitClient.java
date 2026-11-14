@@ -19,14 +19,25 @@ public class RetrofitClient {
 
     private static final String BASE_URL =
             "https://api-bitacora-grupo3-337965348211.us-central1.run.app/";
+    public static final int TIMEOUT_MS = 15_000;
+
+    public static String getRecordsUrl() {
+        return BASE_URL + RegistroApi.LIST_PATH;
+    }
+
+    public static String getTimeoutProbeUrl() {
+        return BASE_URL + RegistroApi.TIMEOUT_PATH;
+    }
 
     private static Retrofit retrofit = null;
     private static dev.josegaldamez.bitacora_de_campo.utils.SessionManager session;
     private static boolean debug;
+
     public static void initialize(android.content.Context context) {
         session = new dev.josegaldamez.bitacora_de_campo.utils.SessionManager(context);
         debug = (context.getApplicationInfo().flags & android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE) != 0;
     }
+
     public static AuthApi getAuthApi() {
         getApi();
         return retrofit.create(AuthApi.class);
@@ -39,8 +50,8 @@ public class RetrofitClient {
             loggingInterceptor.setLevel(debug ? HttpLoggingInterceptor.Level.BASIC : HttpLoggingInterceptor.Level.NONE);
 
             OkHttpClient client = new OkHttpClient.Builder()
-                    .connectTimeout(15, TimeUnit.SECONDS)
-                    .readTimeout(15, TimeUnit.SECONDS)
+                    .connectTimeout(TIMEOUT_MS, TimeUnit.MILLISECONDS)
+                    .readTimeout(TIMEOUT_MS, TimeUnit.MILLISECONDS)
                     .dns(new Dns() {
                         @NonNull
                         @Override
@@ -63,6 +74,12 @@ public class RetrofitClient {
                         boolean same = request.url().host().equals(base.host()) && request.url().scheme().equals(base.scheme()) && request.url().port() == base.port();
                         String path = request.url().encodedPath();
                         boolean publicRequest = path.equals("/api/auth/login") || path.equals("/api/auth/registro");
+
+                        // Si la petición solicita omitir explícitamente el token para pruebas (evita logout local)
+                        if (same && Boolean.FALSE.equals(request.tag(Boolean.class))) {
+                            return chain.proceed(request.newBuilder().removeHeader("Authorization").build());
+                        }
+
                         String token = session == null ? null : session.getToken();
                         if (same && !publicRequest && token == null) {
                             if (session != null) session.logout();
@@ -72,7 +89,9 @@ public class RetrofitClient {
                         okhttp3.Request.Builder builder = request.newBuilder().removeHeader("Authorization");
                         if (same && !publicRequest) builder.header("Authorization", "Bearer " + token);
                         okhttp3.Response response = chain.proceed(builder.build());
-                        if (same && !publicRequest && response.code() == 401 && session != null) session.invalidate(token);
+                        if (same && !publicRequest && response.code() == 401 && session != null) {
+                            session.invalidate(token);
+                        }
                         return response;
                     })
                     .addInterceptor(loggingInterceptor)
