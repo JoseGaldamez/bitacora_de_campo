@@ -38,12 +38,15 @@ import java.util.Date;
 import java.util.Locale;
 
 import dev.josegaldamez.bitacora_de_campo.R;
+import dev.josegaldamez.bitacora_de_campo.controllers.RecordController;
 import dev.josegaldamez.bitacora_de_campo.models.Record;
 import dev.josegaldamez.bitacora_de_campo.viewmodel.RegistroViewModel;
 
 public class AddRecordActivity extends AppCompatActivity {
 
     public static final String EXTRA_RECORD_ID = "extra_record_id";
+    private int editRecordId = -1;
+    private String existingFecha = null;
 
     private EditText etTitle;
     private EditText etDescription;
@@ -51,11 +54,8 @@ public class AddRecordActivity extends AppCompatActivity {
     private ProgressBar progressBar;
     private Button btnSaveRecord;
     private Bitmap capturedBitmap;
-    private String existingPhotoBase64 = "";
 
     private RegistroViewModel viewModel;
-    private int editRecordId = -1;
-    private boolean isEditMode = false;
 
     private final ActivityResultLauncher<Void> cameraLauncher =
             registerForActivityResult(new ActivityResultContracts.TakePicturePreview(), bitmap -> {
@@ -118,15 +118,11 @@ public class AddRecordActivity extends AppCompatActivity {
         Button btnVoiceToText = findViewById(R.id.btn_voice_to_text);
         btnSaveRecord = findViewById(R.id.btn_save_record);
 
-        // Check if editing
-        if (getIntent().hasExtra(EXTRA_RECORD_ID)) {
-            editRecordId = getIntent().getIntExtra(EXTRA_RECORD_ID, -1);
-            if (editRecordId != -1) {
-                isEditMode = true;
-                toolbar.setTitle("Editar Registro");
-                btnSaveRecord.setText("Actualizar Registro");
-                viewModel.fetchRecordById(editRecordId);
-            }
+        editRecordId = getIntent().getIntExtra(EXTRA_RECORD_ID, -1);
+        if (editRecordId != -1) {
+            toolbar.setTitle("Modificar Registro");
+            btnSaveRecord.setText("Actualizar Registro");
+            viewModel.fetchRecordById(editRecordId);
         }
 
         btnTakePhoto.setOnClickListener(v -> openCamera());
@@ -137,27 +133,25 @@ public class AddRecordActivity extends AppCompatActivity {
     }
 
     private void setupObservers() {
-        if (isEditMode) {
-            viewModel.getRecordDetailLiveData().observe(this, record -> {
-                if (record != null) {
-                    etTitle.setText(record.getTitulo());
-                    etDescription.setText(record.getDescripcion());
-                    existingPhotoBase64 = record.getFotografiaBase64() != null ? record.getFotografiaBase64() : "";
-
-                    Bitmap bitmap = base64ToBitmap(existingPhotoBase64);
-                    if (bitmap != null) {
-                        capturedBitmap = bitmap;
-                        ivPhotoPreview.setPadding(0, 0, 0, 0);
-                        ivPhotoPreview.setScaleType(ImageView.ScaleType.CENTER_CROP);
-                        ivPhotoPreview.setImageBitmap(bitmap);
-                    }
-                }
-            });
-        }
-
         viewModel.getIsLoadingLiveData().observe(this, isLoading -> {
             progressBar.setVisibility(isLoading ? View.VISIBLE : View.GONE);
             btnSaveRecord.setEnabled(!isLoading);
+        });
+
+        viewModel.getRecordDetailLiveData().observe(this, record -> {
+            if (record != null && editRecordId != -1) {
+                etTitle.setText(record.getTitulo());
+                etDescription.setText(record.getDescripcion());
+                existingFecha = record.getFecha();
+
+                Bitmap bitmap = RecordController.base64ToBitmap(record.getFotografiaBase64());
+                if (bitmap != null) {
+                    capturedBitmap = bitmap;
+                    ivPhotoPreview.setPadding(0, 0, 0, 0);
+                    ivPhotoPreview.setScaleType(ImageView.ScaleType.CENTER_CROP);
+                    ivPhotoPreview.setImageBitmap(bitmap);
+                }
+            }
         });
 
         viewModel.getErrorMessageLiveData().observe(this, errorMsg -> {
@@ -217,44 +211,32 @@ public class AddRecordActivity extends AppCompatActivity {
         String title = etTitle.getText().toString().trim();
         String description = etDescription.getText().toString().trim();
 
-        // Validations matching API specifications
         if (title.isEmpty()) {
-            etTitle.setError("El título es requerido");
-            etTitle.requestFocus();
-            return;
-        }
-        if (title.length() < 3 || title.length() > 100) {
-            etTitle.setError("El título debe tener entre 3 y 100 caracteres");
+            etTitle.setError("Ingrese un título");
             etTitle.requestFocus();
             return;
         }
 
-        if (description.isEmpty()) {
-            etDescription.setError("La descripción es requerida");
-            etDescription.requestFocus();
-            return;
-        }
-        if (description.length() > 500) {
-            etDescription.setError("La descripción no puede exceder los 500 caracteres");
-            etDescription.requestFocus();
-            return;
-        }
-
-        if (capturedBitmap == null && existingPhotoBase64.isEmpty()) {
+        if (capturedBitmap == null) {
             Toast.makeText(this, "Por favor tome una fotografía antes de guardar.", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        String base64Photo = capturedBitmap != null ? bitmapToBase64(capturedBitmap) : existingPhotoBase64;
-        String fechaActual = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(new Date());
+        if (description.isEmpty()) {
+            etDescription.setError("Ingrese o dicte una descripción");
+            etDescription.requestFocus();
+            return;
+        }
 
-        Record record = new Record(title, description, base64Photo, fechaActual);
+        String base64Photo = bitmapToBase64(capturedBitmap);
+        String fecha = (existingFecha != null && !existingFecha.isEmpty()) ? existingFecha : new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(new Date());
 
-        if (isEditMode) {
-            record.setId(editRecordId);
-            viewModel.updateRecord(editRecordId, record);
+        if (editRecordId != -1) {
+            Record updatedRecord = new Record(editRecordId, title, description, base64Photo, fecha);
+            viewModel.updateRecord(editRecordId, updatedRecord);
         } else {
-            viewModel.createRecord(record);
+            Record newRecord = new Record(title, description, base64Photo, fecha);
+            viewModel.createRecord(newRecord);
         }
     }
 
@@ -284,16 +266,5 @@ public class AddRecordActivity extends AppCompatActivity {
         bitmap.compress(Bitmap.CompressFormat.JPEG, 70, byteArrayOutputStream);
         byte[] byteArray = byteArrayOutputStream.toByteArray();
         return Base64.encodeToString(byteArray, Base64.DEFAULT);
-    }
-
-    private Bitmap base64ToBitmap(String base64Str) {
-        if (base64Str == null || base64Str.trim().isEmpty()) return null;
-        try {
-            byte[] decodedBytes = Base64.decode(base64Str, Base64.DEFAULT);
-            return BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.length);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
     }
 }

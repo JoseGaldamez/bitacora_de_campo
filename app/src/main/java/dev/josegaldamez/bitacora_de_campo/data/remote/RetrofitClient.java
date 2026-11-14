@@ -11,13 +11,15 @@ import java.util.concurrent.TimeUnit;
 
 import okhttp3.Dns;
 import okhttp3.OkHttpClient;
+import okhttp3.Request;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class RetrofitClient {
 
-    private static final String BASE_URL = "http://10.0.2.2:5033/";
+    private static final String BASE_URL = "http://localhost:5033/";
+    public static String TOKEN_JWT = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiIzIiwiZW1haWwiOiJ3ZWJhbmVnYXNAdXRoLmhuIiwicm9sZSI6IkFkbWluIiwibmJmIjoxNzk0NjMzMTQ3LCJleHAiOjE3OTQ2MzM3NDcsImlhdCI6MTc5NDYzMzE0NywiaXNzIjoiQml0YWNvcmFBcGkiLCJhdWQiOiJCaXRhY29yYUFwcCJ9.5WKDnDyt-0hM1dUsCoIHweEfLgtJvG4af86mjoDNni8";
     private static Retrofit retrofit = null;
 
     public static RegistroApi getApi() {
@@ -41,6 +43,14 @@ public class RetrofitClient {
                             }
                             return ipv4Addresses.isEmpty() ? addresses : ipv4Addresses;
                         }
+                    })
+                    .addInterceptor(chain -> {
+                        Request original = chain.request();
+                        Request.Builder builder = original.newBuilder();
+                        if (TOKEN_JWT != null && !TOKEN_JWT.isEmpty()) {
+                            builder.header("Authorization", "Bearer " + TOKEN_JWT);
+                        }
+                        return chain.proceed(builder.build());
                     })
                     .addInterceptor(loggingInterceptor)
                     .build();

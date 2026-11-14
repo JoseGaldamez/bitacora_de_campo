@@ -2,6 +2,8 @@ package dev.josegaldamez.bitacora_de_campo.views;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -20,6 +22,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.List;
@@ -53,6 +56,10 @@ public class MainActivity extends AppCompatActivity implements RecordAdapter.OnR
             return insets;
         });
 
+        // Configurar la Toolbar para que soporte el menú superior
+        MaterialToolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
         viewModel = new ViewModelProvider(this).get(RegistroViewModel.class);
 
         rvRecords = findViewById(R.id.rv_records);
@@ -81,6 +88,22 @@ public class MainActivity extends AppCompatActivity implements RecordAdapter.OnR
             Intent intent = new Intent(MainActivity.this, AddRecordActivity.class);
             startActivity(intent);
         });
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.main_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == R.id.action_comparativa) {
+            Intent intent = new Intent(MainActivity.this, ComparativaActivity.class);
+            startActivity(intent);
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     @Override
